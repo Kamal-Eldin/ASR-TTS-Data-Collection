@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+
+# Virtual environment
+venv/
+.env
+
+# SQLite database
+*.sqlite3
+tts_dataset.db
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Build
+frontend/build/
+frontend/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Recordings and generated data
+recordings/
+*.wav
+*.mp3
+*.ogg
+*.json
+*.jsonl
+
+# Logs
+*.log
+
+# VSCode
+.vscode/ 
