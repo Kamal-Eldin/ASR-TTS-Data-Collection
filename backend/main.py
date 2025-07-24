@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import hashlib
@@ -141,7 +141,24 @@ def list_projects():
     with session_lock:
         db = SessionLocal()
         projects = db.query(Project).all()
-        result = [{"id": p.id, "name": p.name, "created_at": p.created_at.isoformat() + 'Z' if p.created_at else None} for p in projects]
+        result = []
+        for p in projects:
+            # Get recording progress for this project
+            recordings = db.query(Recording).filter(Recording.project_id == p.id).all()
+            recorded_texts = [r.text for r in recordings]
+            last_recorded_index = -1
+            for i, prompt in enumerate(p.prompts):
+                if prompt in recorded_texts:
+                    last_recorded_index = i
+            
+            result.append({
+                "id": p.id, 
+                "name": p.name, 
+                "created_at": p.created_at.isoformat() + 'Z' if p.created_at else None,
+                "total_prompts": len(p.prompts),
+                "recorded_count": len(recordings),
+                "last_recorded_index": last_recorded_index
+            })
         db.close()
     return {"projects": result}
 
@@ -205,6 +222,27 @@ def get_project(project_id: int):
         db.close()
     return result
 
+@app.get("/projects/{project_id}/recordings")
+def get_project_recordings(project_id: int):
+    with session_lock:
+        db = SessionLocal()
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            db.close()
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Get all recordings for this project
+        recordings = db.query(Recording).filter(Recording.project_id == project_id).all()
+        result = []
+        for rec in recordings:
+            result.append({
+                "text": rec.text,
+                "filename": rec.filename,
+                "recorded_at": rec.recorded_at.isoformat() + 'Z' if rec.recorded_at else None
+            })
+        db.close()
+    return {"recordings": result}
+
 @app.post("/upload_audio/")
 async def upload_audio(text: str = Form(...), audio: UploadFile = File(...), project_id: int = Form(...)):
     from datetime import datetime
@@ -232,7 +270,7 @@ async def upload_audio(text: str = Form(...), audio: UploadFile = File(...), pro
     return {"filename": filename}
 
 @app.post("/delete_audio/")
-async def delete_audio(text: str = Form(...)):
+async def delete_audio(text: str = Form(...), project_id: int = Form(...)):
     md5 = hashlib.md5(text.encode('utf-8')).hexdigest()
     storage_path = get_setting("storage_path", "recordings")
     deleted = False
@@ -243,13 +281,16 @@ async def delete_audio(text: str = Form(...)):
             path = os.path.join(storage_path, filename)
             if os.path.exists(path):
                 os.remove(path)
-                rec = db.query(Recording).filter(Recording.filename == filename).first()
+                rec = db.query(Recording).filter(
+                    Recording.filename == filename,
+                    Recording.project_id == project_id
+                ).first()
                 if rec:
                     db.delete(rec)
                 deleted = True
         db.commit()
         db.close()
-    log_interaction("delete", {"text": text, "md5": md5, "deleted": deleted})
+    log_interaction("delete", {"text": text, "md5": md5, "project_id": project_id, "deleted": deleted})
     return {"deleted": deleted}
 
 # Update settings endpoints to use DB
@@ -382,3 +423,14 @@ def clear_database():
     
     except Exception as e:
         return {"status": "error", "detail": f"Failed to clear database: {str(e)}"} 
+
+@app.get("/recordings/{filename}")
+def get_recording(filename: str):
+    """Serve audio files from the recordings directory"""
+    storage_path = get_setting("storage_path", "recordings")
+    file_path = os.path.join(storage_path, filename)
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Recording not found")
+    
+    return FileResponse(file_path, media_type="audio/wav") 
