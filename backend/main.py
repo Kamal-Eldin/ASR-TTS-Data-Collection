@@ -55,12 +55,20 @@ class Setting(Base):
     key = Column(String, unique=True, index=True)
     value = Column(Text)
 
+class Project(Base):
+    __tablename__ = 'projects'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    prompts = Column(JSON)  # Store prompts as JSON array
+    created_at = Column(DateTime)
+
 class Recording(Base):
     __tablename__ = 'recordings'
     id = Column(Integer, primary_key=True, index=True)
     text = Column(Text)
     filename = Column(String, unique=True)
     recorded_at = Column(DateTime)
+    project_id = Column(Integer)  # Link to project
 
 class Interaction(Base):
     __tablename__ = 'interactions'
@@ -101,17 +109,57 @@ def log_interaction(action, details):
         db.close()
 
 @app.post("/upload_csv/")
-async def upload_csv(file: UploadFile = File(...)):
+async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...)):
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="File must be a CSV.")
     content = await file.read()
     lines = content.decode('utf-8').splitlines()
     reader = csv.reader(lines)
     prompts = [row[0] for row in reader if row]
-    return {"prompts": prompts}
+    
+    # Save project to database
+    from datetime import datetime
+    with session_lock:
+        db = SessionLocal()
+        # Check if project exists
+        existing = db.query(Project).filter(Project.name == project_name).first()
+        if existing:
+            db.close()
+            raise HTTPException(status_code=400, detail="Project name already exists")
+        
+        project = Project(name=project_name, prompts=prompts, created_at=datetime.utcnow())
+        db.add(project)
+        db.commit()
+        db.refresh(project)
+        db.close()
+    
+    log_interaction("create_project", {"name": project_name, "prompt_count": len(prompts)})
+    return {"project_id": project.id, "name": project_name, "prompts": prompts}
+
+@app.get("/projects/")
+def list_projects():
+    with session_lock:
+        db = SessionLocal()
+        projects = db.query(Project).all()
+        result = [{"id": p.id, "name": p.name, "created_at": p.created_at.isoformat() + 'Z' if p.created_at else None} for p in projects]
+        db.close()
+    return {"projects": result}
+
+@app.get("/projects/{project_id}")
+def get_project(project_id: int):
+    with session_lock:
+        db = SessionLocal()
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            db.close()
+            raise HTTPException(status_code=404, detail="Project not found")
+        result = {"id": project.id, "name": project.name, "prompts": project.prompts, "created_at": project.created_at.isoformat() + 'Z' if project.created_at else None}
+        db.close()
+    return result
 
 @app.post("/upload_audio/")
-async def upload_audio(text: str = Form(...), audio: UploadFile = File(...)):
+async def upload_audio(text: str = Form(...), audio: UploadFile = File(...), project_id: int = Form(...)):
+    from datetime import datetime
     md5 = hashlib.md5(text.encode('utf-8')).hexdigest()
     ext = os.path.splitext(audio.filename)[-1] or '.wav'
     filename = f"{md5}{ext}"
@@ -126,12 +174,13 @@ async def upload_audio(text: str = Form(...), audio: UploadFile = File(...)):
         if rec:
             rec.text = text
             rec.recorded_at = recorded_at
+            rec.project_id = project_id
         else:
-            rec = Recording(text=text, filename=filename, recorded_at=recorded_at)
+            rec = Recording(text=text, filename=filename, recorded_at=recorded_at, project_id=project_id)
             db.add(rec)
         db.commit()
         db.close()
-    log_interaction("record", {"text": text, "filename": filename, "recorded_at": recorded_at.isoformat() + 'Z'})
+    log_interaction("record", {"text": text, "filename": filename, "project_id": project_id, "recorded_at": recorded_at.isoformat() + 'Z'})
     return {"filename": filename}
 
 @app.post("/delete_audio/")
@@ -209,32 +258,44 @@ def export_s3(payload: dict = None):
                 continue
     return {"status": "ok", "uploaded": uploaded}
 
-# Update export_hf to use DB for metadata
+# Update export_hf to work with specific project
 @app.post("/export_hf/")
-def export_hf(payload: dict = None):
+def export_hf(project_id: int = Form(...)):
     token = get_setting("huggingface_token", "")
     repo_id = get_setting("huggingface_repo", "")
     if not token or not repo_id:
         return {"status": "error", "detail": "Hugging Face token or repo not configured"}
-    # Build dataset metadata (text, audio, recorded_at)
+    
+    # Get project info
     with session_lock:
         db = SessionLocal()
-        recs = db.query(Recording).all()
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            db.close()
+            return {"status": "error", "detail": "Project not found"}
+        
+        # Get recordings for this project
+        recs = db.query(Recording).filter(Recording.project_id == project_id).all()
         dataset_rows = [{
             "audio": os.path.join(get_setting("storage_path", "recordings"), r.filename),
             "text": r.text,
             "recorded_at": r.recorded_at.isoformat() + 'Z' if r.recorded_at else None
         } for r in recs]
         db.close()
+    
     if not dataset_rows:
-        return {"status": "error", "detail": "No audio files found"}
+        return {"status": "error", "detail": "No audio files found for this project"}
+    
+    # Create dataset with project name
+    dataset_name = f"{repo_id}-{project.name.lower().replace(' ', '-')}"
+    
     df = pd.DataFrame(dataset_rows)
     ds = Dataset.from_pandas(df)
     ds = ds.cast_column("audio", Audio())
     try:
-        ds.push_to_hub(repo_id, token=token)
+        ds.push_to_hub(dataset_name, token=token)
     except Exception as e:
-        log_interaction("export_hf_error", {"error": str(e)})
+        log_interaction("export_hf_error", {"error": str(e), "project_id": project_id})
         return {"status": "error", "detail": f"Failed to push dataset: {str(e)}"}
-    log_interaction("export_hf", {"count": len(dataset_rows)})
-    return {"status": "ok", "uploaded": [row["audio"] for row in dataset_rows]} 
+    log_interaction("export_hf", {"count": len(dataset_rows), "project_id": project_id, "dataset_name": dataset_name})
+    return {"status": "ok", "uploaded": [row["audio"] for row in dataset_rows], "dataset_name": dataset_name} 
