@@ -116,7 +116,7 @@ async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...)
     lines = content.decode('utf-8').splitlines()
     reader = csv.reader(lines)
     prompts = [row[0] for row in reader if row]
-    
+    print(prompts)
     # Save project to database
     from datetime import datetime
     with session_lock:
@@ -145,6 +145,37 @@ def list_projects():
         db.close()
     return {"projects": result}
 
+@app.delete("/projects/{project_id}")
+def delete_project(project_id: int):
+    with session_lock:
+        db = SessionLocal()
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            db.close()
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Delete all recordings for this project
+        recordings = db.query(Recording).filter(Recording.project_id == project_id).all()
+        storage_path = get_setting("storage_path", "recordings")
+        for recording in recordings:
+            try:
+                file_path = os.path.join(storage_path, recording.filename)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                print(f"Failed to delete file {recording.filename}: {e}")
+        
+        # Delete recordings from database
+        db.query(Recording).filter(Recording.project_id == project_id).delete()
+        
+        # Delete project
+        db.delete(project)
+        db.commit()
+        db.close()
+    
+    log_interaction("delete_project", {"project_id": project_id, "name": project.name})
+    return {"status": "ok", "message": f"Project '{project.name}' deleted successfully"}
+
 @app.get("/projects/{project_id}")
 def get_project(project_id: int):
     with session_lock:
@@ -153,7 +184,24 @@ def get_project(project_id: int):
         if not project:
             db.close()
             raise HTTPException(status_code=404, detail="Project not found")
-        result = {"id": project.id, "name": project.name, "prompts": project.prompts, "created_at": project.created_at.isoformat() + 'Z' if project.created_at else None}
+        
+        # Get recording progress
+        recordings = db.query(Recording).filter(Recording.project_id == project_id).all()
+        recorded_texts = [r.text for r in recordings]
+        last_recorded_index = -1
+        for i, prompt in enumerate(project.prompts):
+            if prompt in recorded_texts:
+                last_recorded_index = i
+        
+        result = {
+            "id": project.id, 
+            "name": project.name, 
+            "prompts": project.prompts, 
+            "created_at": project.created_at.isoformat() + 'Z' if project.created_at else None,
+            "total_prompts": len(project.prompts),
+            "recorded_count": len(recordings),
+            "last_recorded_index": last_recorded_index
+        }
         db.close()
     return result
 
@@ -299,3 +347,38 @@ def export_hf(project_id: int = Form(...)):
         return {"status": "error", "detail": f"Failed to push dataset: {str(e)}"}
     log_interaction("export_hf", {"count": len(dataset_rows), "project_id": project_id, "dataset_name": dataset_name})
     return {"status": "ok", "uploaded": [row["audio"] for row in dataset_rows], "dataset_name": dataset_name} 
+
+@app.post("/clear_database/")
+def clear_database():
+    """Clear all data from the database and delete all audio files"""
+    try:
+        with session_lock:
+            db = SessionLocal()
+            
+            # Get all recordings to delete their files
+            recordings = db.query(Recording).all()
+            storage_path = get_setting("storage_path", "recordings")
+            
+            # Delete all audio files
+            for recording in recordings:
+                try:
+                    file_path = os.path.join(storage_path, recording.filename)
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                except Exception as e:
+                    print(f"Failed to delete file {recording.filename}: {e}")
+            
+            # Clear all tables
+            db.query(Interaction).delete()
+            db.query(Recording).delete()
+            db.query(Project).delete()
+            db.query(Setting).delete()
+            
+            db.commit()
+            db.close()
+        
+        log_interaction("clear_database", {"message": "Database cleared successfully"})
+        return {"status": "ok", "message": "Database cleared successfully. All projects, recordings, and settings have been removed."}
+    
+    except Exception as e:
+        return {"status": "error", "detail": f"Failed to clear database: {str(e)}"} 
