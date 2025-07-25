@@ -1,6 +1,26 @@
 # TTS Dataset Generator
 
-A web application for collecting high-quality voice datasets from CSV input with support for multiple projects and export to Amazon S3 and Hugging Face.
+A web application for collecting high-quality voice datasets with support for CSV upload and multi-line text input, multiple projects, RTL language support, and export to Amazon S3 and Hugging Face.
+
+## Quick Start
+
+```bash
+# Clone and setup
+git clone <repository-url>
+cd tts-dataset-generator
+
+# Backend (SQLite for quick start)
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+
+# Frontend (in new terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+Visit `http://localhost:5174` to start creating voice datasets!
 
 ## Features
 
@@ -12,19 +32,22 @@ A web application for collecting high-quality voice datasets from CSV input with
 - ☁️ **Export Options**: Export datasets to Amazon S3 or Hugging Face
 - ⚙️ **Settings Management**: Configure storage paths and API credentials
 - 🗄️ **Database Management**: Clear entire database when needed
+- 🌐 **RTL Language Support**: Full support for Right-to-Left languages (Arabic, Hebrew, Persian)
+- 📝 **Flexible Input Methods**: CSV upload or multi-line text input
+- 🎯 **Smart UI**: RTL text display with English interface
 
 ## Tech Stack
 
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS
-- **Backend**: FastAPI + Python
-- **Database**: MySQL
+- **Backend**: FastAPI + Python + SQLAlchemy
+- **Database**: MySQL (with SQLite fallback for development)
 - **Storage**: Local filesystem + Amazon S3 + Hugging Face Datasets
 
 ## Prerequisites
 
 - Python 3.8+
 - Node.js 16+
-- MySQL 8.0+
+- MySQL 8.0+ (optional - SQLite fallback available)
 - Git
 
 ## Installation
@@ -113,7 +136,7 @@ cd frontend
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`
+The application will be available at `http://localhost:5174` (or the next available port)
 
 ## Usage
 
@@ -121,8 +144,19 @@ The application will be available at `http://localhost:3000`
 
 1. Click "New Project" on the main page
 2. Enter a project name
-3. Select a CSV file with prompts (one prompt per row)
-4. Click "Create Project"
+3. Choose input method:
+   - **CSV Upload**: Select a CSV file with prompts (one prompt per row)
+   - **Multi-line Text**: Type or paste prompts directly (one per line)
+4. **Optional**: Check "Right-to-Left (RTL) Language" for Arabic, Hebrew, Persian, etc.
+5. Click "Create Project"
+
+#### RTL Language Support
+
+When creating projects for RTL languages:
+- Check the "Right-to-Left (RTL) Language" checkbox
+- The text input area will display in RTL format
+- Prompts will be properly formatted in the recording interface
+- UI labels remain in English for consistency
 
 ### Recording Audio
 
@@ -132,6 +166,13 @@ The application will be available at `http://localhost:3000`
    - **Left Arrow**: Skip to next prompt
    - **Right Arrow**: Go to previous prompt
    - **Space**: Play/Stop current recording
+
+#### RTL Text Display
+
+For RTL projects, prompts are automatically displayed with proper RTL formatting:
+- Text flows from right to left
+- Proper text alignment for Arabic, Hebrew, Persian, etc.
+- Maintains readability in the recording interface
 
 ### Exporting Datasets
 
@@ -150,8 +191,9 @@ The application will be available at `http://localhost:3000`
 ### Tables
 
 - **settings**: Application configuration
-- **projects**: Project information and prompts
-- **recordings**: Audio recordings metadata
+- **projects**: Project information, prompts, and RTL settings
+- **prompts**: Individual prompts with order and project association
+- **recordings**: Audio recordings metadata with prompt association
 - **interactions**: User interaction logs
 
 ### Key Features
@@ -160,6 +202,8 @@ The application will be available at `http://localhost:3000`
 - **Progress Tracking**: Resume recording from last position
 - **Metadata Storage**: Recording timestamps and file information
 - **Audit Trail**: Log all user interactions
+- **RTL Support**: Projects can be marked as RTL for proper text display
+- **Prompt Management**: Prompts are stored separately with order preservation
 
 ## Configuration
 
@@ -209,8 +253,11 @@ If ports are already in use:
 ```bash
 # Kill processes on specific ports
 lsof -ti:8000 | xargs kill -9  # Backend
-lsof -ti:3000 | xargs kill -9  # Frontend
+lsof -ti:5173 | xargs kill -9  # Frontend (Vite default)
+lsof -ti:5174 | xargs kill -9  # Frontend (Vite fallback)
 ```
+
+**Note**: Vite automatically finds the next available port if 5173 is in use.
 
 ### Permission Issues
 
@@ -233,16 +280,39 @@ tts-dataset-generator/
 │   ├── main.py              # FastAPI application
 │   ├── config.py            # Configuration settings
 │   ├── setup_database.py    # Database setup script
+│   ├── migrate_sqlite_to_mysql.py  # Database migration script
 │   └── requirements.txt     # Python dependencies
 ├── frontend/
 │   ├── src/
 │   │   ├── components/      # React components
+│   │   │   ├── Projects.tsx # Project management
+│   │   │   ├── Recording.tsx # Audio recording interface
+│   │   │   └── Settings.tsx # Settings management
 │   │   ├── App.tsx         # Main application
 │   │   └── main.tsx        # Entry point
 │   ├── package.json        # Node.js dependencies
 │   └── vite.config.ts      # Vite configuration
 └── recordings/             # Audio storage directory
 ```
+
+### RTL Implementation
+
+The application includes comprehensive RTL language support:
+
+- **Database**: Projects have an `is_rtl` field to mark RTL languages
+- **Frontend**: Text inputs display in RTL format when RTL is selected
+- **Recording Interface**: Prompts are displayed with proper RTL styling
+- **UI Consistency**: Interface labels remain in English for consistency
+
+### Input Methods
+
+Two flexible input methods are supported:
+
+1. **CSV Upload**: Traditional CSV file upload with one prompt per row
+2. **Multi-line Text**: Direct text input with one prompt per line
+   - Supports RTL text input when RTL checkbox is selected
+   - Real-time prompt counting
+   - Automatic empty line filtering
 
 ### Adding New Features
 

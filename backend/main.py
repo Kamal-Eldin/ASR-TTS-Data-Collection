@@ -85,6 +85,7 @@ class Project(Base):
     __tablename__ = 'projects'
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), unique=True, index=True)
+    is_rtl = Column(Integer, default=0)  # 0 for LTR, 1 for RTL
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Prompt(Base):
@@ -136,9 +137,9 @@ def migrate_schema():
                 # Check if prompt_id column exists in recordings table
                 try:
                     db.execute(text("SELECT prompt_id FROM recordings LIMIT 1"))
-                    print("✅ Database schema is up to date")
+                    print("✅ Recordings table schema is up to date")
                 except Exception:
-                    print("🔄 Migrating SQLite database schema...")
+                    print("🔄 Migrating recordings table schema...")
                     
                     # Add prompt_id column to recordings table
                     try:
@@ -146,6 +147,20 @@ def migrate_schema():
                         print("✅ Added prompt_id column to recordings table")
                     except Exception as e:
                         print(f"⚠️  Could not add prompt_id column: {e}")
+                
+                # Check if is_rtl column exists in projects table
+                try:
+                    db.execute(text("SELECT is_rtl FROM projects LIMIT 1"))
+                    print("✅ Projects table schema is up to date")
+                except Exception:
+                    print("🔄 Migrating projects table schema...")
+                    
+                    # Add is_rtl column to projects table
+                    try:
+                        db.execute(text("ALTER TABLE projects ADD COLUMN is_rtl INTEGER DEFAULT 0"))
+                        print("✅ Added is_rtl column to projects table")
+                    except Exception as e:
+                        print(f"⚠️  Could not add is_rtl column: {e}")
                     
                     # Check if prompts table exists
                     try:
@@ -220,7 +235,7 @@ storage_path = get_setting("storage_path", "recordings")
 os.makedirs(storage_path, exist_ok=True)
 
 @app.post("/upload_csv/")
-async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...)):
+async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...), is_rtl: bool = Form(False)):
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="File must be a CSV")
     
@@ -238,10 +253,10 @@ async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...)
     if not prompts:
         raise HTTPException(status_code=400, detail="No valid prompts found in CSV")
     
-    return await create_project_with_prompts(project_name, prompts)
+    return await create_project_with_prompts(project_name, prompts, is_rtl)
 
 @app.post("/create_project/")
-async def create_project_with_text(project_name: str = Form(...), prompts_text: str = Form(...)):
+async def create_project_with_text(project_name: str = Form(...), prompts_text: str = Form(...), is_rtl: bool = Form(False)):
     """Create a project with prompts from multi-line text input"""
     if not prompts_text.strip():
         raise HTTPException(status_code=400, detail="No prompts provided")
@@ -253,9 +268,9 @@ async def create_project_with_text(project_name: str = Form(...), prompts_text: 
     if not prompts:
         raise HTTPException(status_code=400, detail="No valid prompts found in text")
     
-    return await create_project_with_prompts(project_name, prompts)
+    return await create_project_with_prompts(project_name, prompts, is_rtl)
 
-async def create_project_with_prompts(project_name: str, prompts: list):
+async def create_project_with_prompts(project_name: str, prompts: list, is_rtl: bool = False):
     """Helper function to create a project with given prompts"""
     with session_lock:
         db = SessionLocal()
@@ -267,7 +282,7 @@ async def create_project_with_prompts(project_name: str, prompts: list):
                 raise HTTPException(status_code=400, detail="Project name already exists")
             
             # Create project
-            project = Project(name=project_name)
+            project = Project(name=project_name, is_rtl=1 if is_rtl else 0)
             db.add(project)
             db.flush()  # Get the project ID
             
@@ -282,7 +297,7 @@ async def create_project_with_prompts(project_name: str, prompts: list):
             
             db.commit()
             
-            return {"project_id": project.id, "prompt_count": len(prompts)}
+            return {"project_id": project.id, "prompt_count": len(prompts), "is_rtl": is_rtl}
             
         except Exception as e:
             db.rollback()
@@ -319,6 +334,7 @@ def list_projects():
                 result.append({
                     "id": p.id, 
                     "name": p.name, 
+                    "is_rtl": bool(p.is_rtl),
                     "created_at": p.created_at.isoformat() + 'Z' if p.created_at else None,
                     "total_prompts": total_prompts,
                     "recorded_count": recorded_count,
@@ -399,6 +415,7 @@ def get_project(project_id: int):
             return {
                 "id": project.id,
                 "name": project.name,
+                "is_rtl": bool(project.is_rtl),
                 "created_at": project.created_at.isoformat() + 'Z' if project.created_at else None,
                 "prompts": [p.text for p in prompts],
                 "total_prompts": len(prompts),
