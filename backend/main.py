@@ -238,6 +238,25 @@ async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...)
     if not prompts:
         raise HTTPException(status_code=400, detail="No valid prompts found in CSV")
     
+    return await create_project_with_prompts(project_name, prompts)
+
+@app.post("/create_project/")
+async def create_project_with_text(project_name: str = Form(...), prompts_text: str = Form(...)):
+    """Create a project with prompts from multi-line text input"""
+    if not prompts_text.strip():
+        raise HTTPException(status_code=400, detail="No prompts provided")
+    
+    # Split by lines and filter empty lines
+    # Handle both \n and \r\n line endings
+    prompts = [line.strip() for line in prompts_text.replace('\r\n', '\n').split('\n') if line.strip()]
+    
+    if not prompts:
+        raise HTTPException(status_code=400, detail="No valid prompts found in text")
+    
+    return await create_project_with_prompts(project_name, prompts)
+
+async def create_project_with_prompts(project_name: str, prompts: list):
+    """Helper function to create a project with given prompts"""
     with session_lock:
         db = SessionLocal()
         try:
@@ -262,14 +281,6 @@ async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...)
                 db.add(prompt)
             
             db.commit()
-
-            # db.close()
-            
-            # log_interaction("create_project", {
-            #     "project_name": project_name, 
-            #     "prompt_count": len(prompts),
-            #     "project_id": project.id
-            # })
             
             return {"project_id": project.id, "prompt_count": len(prompts)}
             
