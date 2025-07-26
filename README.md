@@ -6,7 +6,7 @@ A web application for collecting high-quality voice datasets with support for CS
 
 ```bash
 # Clone and setup
-git clone Voice-Dataset-Collection
+git clone https://github.com/Oddadmix/Voice-Dataset-Collection
 cd Voice-Dataset-Collection
 
 # Backend (SQLite for quick start)
