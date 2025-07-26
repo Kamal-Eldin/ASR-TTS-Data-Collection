@@ -22,7 +22,7 @@ class DatabaseConfig:
         """Get database URL - defaults to SQLite for easier setup"""
         # Check if MySQL is explicitly configured and available
         if (cls.MYSQL_HOST and cls.MYSQL_USER and cls.MYSQL_PASSWORD and 
-            cls.MYSQL_DATABASE and cls.MYSQL_HOST != 'localhost'):
+            cls.MYSQL_DATABASE):
             return f"mysql+pymysql://{cls.MYSQL_USER}:{cls.MYSQL_PASSWORD}@{cls.MYSQL_HOST}:{cls.MYSQL_PORT}/{cls.MYSQL_DATABASE}"
         else:
             # Default to SQLite for easier setup
@@ -45,7 +45,7 @@ class AppConfig:
     STORAGE_PATH = os.getenv('STORAGE_PATH', 'recordings')
     
     # CORS Configuration
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173').split(',')
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174').split(',')
     
     # Export Timeouts
     HF_EXPORT_TIMEOUT = int(os.getenv('HF_EXPORT_TIMEOUT', 300))

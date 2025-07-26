@@ -1,12 +1,7 @@
-import os
-import sys
-
-# Add the current directory to Python path to ensure imports work
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+import os
 
 from config import AppConfig
 from models.database import Base
