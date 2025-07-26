@@ -286,7 +286,7 @@ function Projects() {
                     <span className="text-gray-700 font-medium">Right-to-Left (RTL) Language</span>
                   </label>
                   <p className="text-sm text-gray-500 mt-1 ml-6">
-                    Enable for Arabic, Hebrew, Persian, or other RTL languages
+                    Enable for Arabic, Persian, or other RTL languages
                   </p>
                 </div>
                 

@@ -32,7 +32,7 @@ Visit `http://localhost:5174` to start creating voice datasets!
 - ☁️ **Export Options**: Export datasets to Amazon S3 or Hugging Face
 - ⚙️ **Settings Management**: Configure storage paths and API credentials
 - 🗄️ **Database Management**: Clear entire database when needed
-- 🌐 **RTL Language Support**: Full support for Right-to-Left languages (Arabic, Hebrew, Persian)
+- 🌐 **RTL Language Support**: Full support for Right-to-Left languages (Arabic, Persian)
 - 📝 **Flexible Input Methods**: CSV upload or multi-line text input
 - 🎯 **Smart UI**: RTL text display with English interface
 
@@ -146,7 +146,7 @@ The application will be available at `http://localhost:5174` (or the next availa
 3. Choose input method:
    - **CSV Upload**: Select a CSV file with prompts (one prompt per row)
    - **Multi-line Text**: Type or paste prompts directly (one per line)
-4. **Optional**: Check "Right-to-Left (RTL) Language" for Arabic, Hebrew, Persian, etc.
+4. **Optional**: Check "Right-to-Left (RTL) Language" for Arabic, Persian, etc.
 5. Click "Create Project"
 
 #### RTL Language Support
@@ -170,7 +170,7 @@ When creating projects for RTL languages:
 
 For RTL projects, prompts are automatically displayed with proper RTL formatting:
 - Text flows from right to left
-- Proper text alignment for Arabic, Hebrew, Persian, etc.
+- Proper text alignment for Arabic, Persian, etc.
 - Maintains readability in the recording interface
 
 ### Exporting Datasets
