@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5174` to start creating voice datasets!
+Visit `http://localhost:5173` to start creating voice datasets!
 
 ## Features
 
@@ -135,7 +135,7 @@ cd frontend
 npm run dev
 ```
 
-The application will be available at `http://localhost:5174` (or the next available port)
+The application will be available at `http://localhost:5173` (or the next available port)
 
 ## Usage
 
