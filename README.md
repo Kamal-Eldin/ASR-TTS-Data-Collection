@@ -296,8 +296,8 @@ Two flexible input methods are supported:
 
 ## License
 
-[Add your license information here]
+MIT
 
 ## Contributing
 
-[Add contribution guidelines here] 
+Feel free to contirbute and open a PR
