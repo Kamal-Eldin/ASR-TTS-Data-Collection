@@ -6,8 +6,8 @@ A web application for collecting high-quality voice datasets with support for CS
 
 ```bash
 # Clone and setup
-git clone <repository-url>
-cd tts-dataset-generator
+git clone Voice-Dataset-Collection
+cd Voice-Dataset-Collection
 
 # Backend (SQLite for quick start)
 cd backend
@@ -48,15 +48,14 @@ Visit `http://localhost:5174` to start creating voice datasets!
 - Python 3.8+
 - Node.js 16+
 - MySQL 8.0+ (optional - SQLite fallback available)
-- Git
 
 ## Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd tts-dataset-generator
+git clone https://github.com/Oddadmix/Voice-Dataset-Collection
+cd Voice-Dataset-Collection
 ```
 
 ### 2. Backend Setup
@@ -268,31 +267,6 @@ chmod +x backend/start_mysql.py
 chmod +x backend/migrate_sqlite_to_mysql.py
 mkdir -p recordings
 chmod 755 recordings
-```
-
-## Development
-
-### Project Structure
-
-```
-tts-dataset-generator/
-├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── config.py            # Configuration settings
-│   ├── setup_database.py    # Database setup script
-│   ├── migrate_sqlite_to_mysql.py  # Database migration script
-│   └── requirements.txt     # Python dependencies
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # React components
-│   │   │   ├── Projects.tsx # Project management
-│   │   │   ├── Recording.tsx # Audio recording interface
-│   │   │   └── Settings.tsx # Settings management
-│   │   ├── App.tsx         # Main application
-│   │   └── main.tsx        # Entry point
-│   ├── package.json        # Node.js dependencies
-│   └── vite.config.ts      # Vite configuration
-└── recordings/             # Audio storage directory
 ```
 
 ### RTL Implementation
