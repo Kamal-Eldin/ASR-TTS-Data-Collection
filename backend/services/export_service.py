@@ -88,8 +88,8 @@ class ExportService:
                 
                 try:
                     # Create dataset
-                    df = pd.DataFrame(dataset_rows)
-                    ds = Dataset.from_pandas(df)
+                    
+                    ds = Dataset.from_list(dataset_rows)
                     ds = ds.cast_column("audio", Audio())
                     
                     try:
