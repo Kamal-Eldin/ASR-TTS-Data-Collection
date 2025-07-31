@@ -15,7 +15,7 @@ class DatabaseConfig:
     MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'tts_dataset_generator')
     
     # SQLite Configuration (default)
-    SQLITE_DATABASE = os.getenv('SQLITE_DATABASE', 'tts_dataset.db')
+    SQLITE_DATABASE = os.getenv('SQLITE_DATABASE', 'data/tts_dataset.db')
     
     @classmethod
     def get_database_url(cls):
@@ -42,7 +42,7 @@ class AppConfig:
     """Application configuration class"""
     
     # Storage Configuration
-    STORAGE_PATH = os.getenv('STORAGE_PATH', 'recordings')
+    STORAGE_PATH = os.getenv('STORAGE_PATH', 'data/recordings')
     
     # CORS Configuration
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174').split(',')
