@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+supervisord.conf
+nginx.conf
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env*
+*.log
+*.sqlite3
+tts_dataset.db
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.gitignore
+frontend/README.md
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Generated Data (should be in a volume)
+recordings/
+*.wav
+*.mp3
+*.ogg
