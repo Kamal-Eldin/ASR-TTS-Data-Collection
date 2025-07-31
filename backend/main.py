@@ -45,16 +45,6 @@ app.include_router(exports_router)
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
-# # Root endpoint
-# @app.get("/")
-# def read_root():
-#     return {"message": "TTS Dataset Generator API", "version": "1.0.0"}
-
-# # Health check endpoint
-# @app.get("/health")
-# def health_check():
-#     return {"status": "healthy"}
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 
