@@ -37,7 +37,7 @@ COPY --from=frontend-builder /app/frontend/dist ./static
 RUN mkdir -p /app/backend/data/recordings && chmod -R 777 /app/backend/data
 
 # Expose the port the backend will run on
-EXPOSE 8000
+EXPOSE 8100
 
 # Start Uvicorn server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8100"]
