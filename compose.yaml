@@ -1,0 +1,33 @@
+name: asr-tts-curator
+
+services:
+  db:
+    container_name: "mysql-db"
+    env_file: 
+      - /workspaces/Voice-Dataset-Collection/backend/.env
+    image: mysql:8.0
+    ports:
+      - ${MYSQL_PORT}:${MYSQL_PORT}
+    networks:
+      - data-collection-net
+
+  app:
+    container_name: "curator-app"
+    env_file: 
+      - /workspaces/Voice-Dataset-Collection/backend/.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    networks:
+      - data-collection-net
+    develop:
+      watch:
+        - action: sync+restart
+          path: /workspaces/Voice-Dataset-Collection/backend/
+          target: /app/backend
+networks:
+  data-collection-net: {}
+
+    

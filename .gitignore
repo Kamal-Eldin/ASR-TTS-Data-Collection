@@ -38,4 +38,10 @@ recordings/
 *.log
 
 # VSCode
-.vscode/ 
+.vscode/
+
+# db data
+db_mount/
+*temp*
+*.ibt
+*.db

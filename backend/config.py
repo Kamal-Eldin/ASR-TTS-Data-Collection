@@ -23,9 +23,11 @@ class DatabaseConfig:
         # Check if MySQL is explicitly configured and available
         if (cls.MYSQL_HOST and cls.MYSQL_USER and cls.MYSQL_PASSWORD and 
             cls.MYSQL_DATABASE):
+            print(f"successfully retrieved mysql connection creds and db url...")
             return f"mysql+pymysql://{cls.MYSQL_USER}:{cls.MYSQL_PASSWORD}@{cls.MYSQL_HOST}:{cls.MYSQL_PORT}/{cls.MYSQL_DATABASE}"
         else:
             # Default to SQLite for easier setup
+            print(f"failed to retrieve mysql creds, defaulting to sqlite connection creds...")
             return f"sqlite:///{cls.SQLITE_DATABASE}"
     
     @classmethod

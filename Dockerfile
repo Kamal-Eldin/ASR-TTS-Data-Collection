@@ -1,5 +1,11 @@
 # Stage 1: Build the React frontend
 FROM node:18-alpine AS frontend-builder
+LABEL name="ASR-TTS-Curator"
+LABEL version="0.1"
+LABEL description='''The voice and text data annotation platform. \
+                    Enables the annotation of text to speech targets for TTS; \
+                    speech to text targets for ASR applications.'''
+
 WORKDIR /app
 
 # Copy package files and install dependencies
