@@ -150,7 +150,6 @@ def main():
         setup_db()
     except Exception as e:
         print(f"❌ Database setup failed: {e}")
-        return
     
     print("\n🎉 MySQL setup completed successfully!")
     print("\n📝 Next steps:")

@@ -4,12 +4,16 @@ from models.database import Project, Prompt
 from database.connection import SessionLocal
 from database.session import session_lock
 
+
+
+
 class ProjectService:
     @staticmethod
     def create_project_with_prompts(project_name: str, prompts: list, is_rtl: bool = False):
         """Create a project with given prompts"""
         with session_lock:
             db = SessionLocal()
+            print(f"Retrieved db session: {db}")
             try:
                 # Check if project name already exists
                 existing_project = db.query(Project).filter(Project.name == project_name).first()

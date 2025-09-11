@@ -9,6 +9,12 @@ from database.session import session_lock
 from services.settings_service import SettingsService
 from utils.logging import log_interaction
 
+
+'''
+export services offers 2 export methods to S3 and to huggingface
+'''
+
+
 class ExportService:
     @staticmethod
     def export_to_s3(payload: dict = None):
