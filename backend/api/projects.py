@@ -1,6 +1,7 @@
 import csv
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from services.project_service import ProjectService
+from utils.logging import logger
 
 router = APIRouter(tags=["projects"])
 
@@ -12,6 +13,7 @@ async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...)
     # Read CSV content
     content = await file.read()
     text = content.decode('utf-8')
+    logger.debug(f"decoded csv content: {text[:13]}")
     
     # Parse CSV
     prompts = []
@@ -29,6 +31,7 @@ async def upload_csv(file: UploadFile = File(...), project_name: str = Form(...)
 async def create_project_with_text(project_name: str = Form(...), prompts_text: str = Form(...), is_rtl: bool = Form(False)):
     """Create a project with prompts from multi-line text input"""
     if not prompts_text.strip():
+        logger.error(f"no prompts provided")
         raise HTTPException(status_code=400, detail="No prompts provided")
     
     # Split by lines and filter empty lines

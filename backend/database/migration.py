@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from .connection import engine, SessionLocal
 from .session import session_lock
+from utils.logging import logger
 
 def migrate_schema():
     """Handle schema migrations for existing databases"""

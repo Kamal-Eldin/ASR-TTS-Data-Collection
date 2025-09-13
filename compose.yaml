@@ -26,13 +26,22 @@ services:
       dockerfile: Dockerfile
     ports:
       - ${APP_PORT}:${APP_PORT}
+    volumes:
+      - type: bind
+        source: /workspaces/Voice-Dataset-Collection/logs
+        target: /app/logs
     networks:
       - data-collection-net
     develop:
       watch:
-        - action: sync+restart
+        - action: rebuild
           path: /workspaces/Voice-Dataset-Collection/backend/
           target: /app/backend
+
+        - action: rebuild
+          path: /workspaces/Voice-Dataset-Collection/frontend/
+          target: /app/backend
+          
     depends_on:
       db:
         condition: service_healthy

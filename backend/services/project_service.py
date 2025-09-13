@@ -3,8 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 from models.database import Project, Prompt
 from database.connection import SessionLocal
 from database.session import session_lock
-
-
+from utils.logging import logger
 
 
 class ProjectService:
@@ -13,7 +12,7 @@ class ProjectService:
         """Create a project with given prompts"""
         with session_lock:
             db = SessionLocal()
-            print(f"Retrieved db session: {db}")
+            logger.debug(f"Retrieved db session: {SessionLocal.kw}")
             try:
                 # Check if project name already exists
                 existing_project = db.query(Project).filter(Project.name == project_name).first()
@@ -33,9 +32,9 @@ class ProjectService:
                         order_index=index
                     )
                     db.add(prompt)
-                
+            
                 db.commit()
-                
+                logger.debug(f"project_id: {project.id}, prompt_count: {len(prompts)}, is_rtl: {is_rtl}")
                 return {"project_id": project.id, "prompt_count": len(prompts), "is_rtl": is_rtl}
                 
             except Exception as e:
