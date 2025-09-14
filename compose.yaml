@@ -4,7 +4,7 @@ services:
   db:
     container_name: "mysql-db"
     env_file: 
-      - /workspaces/Voice-Dataset-Collection/backend/.env
+      - /workspaces/Voice-Dataset-Collection/.env
     image: mysql:8.0
     ports:
       - ${MYSQL_PORT}:${MYSQL_PORT}
@@ -20,10 +20,12 @@ services:
   app:
     container_name: "curator-app"
     env_file: 
-      - /workspaces/Voice-Dataset-Collection/backend/.env
+      - /workspaces/Voice-Dataset-Collection/.env
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - APP_PORT=$APP_PORT
     ports:
       - ${APP_PORT}:${APP_PORT}
     volumes:

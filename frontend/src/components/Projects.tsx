@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const BACKEND_URL = 'http://localhost:8100';
-
+const BACKEND_URL = 'http://localhost:8500';
 interface Project {
   id: number;
   name: string;
@@ -82,24 +81,24 @@ function Projects() {
           body: formData,
         });
       }
-      console.log("create project response:", res.json())
+      alert(`create project response:", ${res.json()}`);
       
-      if (res.ok) {
-        const data = await res.json();
-        setShowProjectModal(false);
-        setProjectName('');
-        setSelectedFile(null);
-        setMultiLineText('');
-        setInputMethod('csv');
-        fetchProjects();
-        // Navigate to the new project
-        navigate(`/recording/${data.project_id}`);
-      } else {
-        const error = await res.json();
-        alert(`Error: ${error.detail}`);
-      }
-    } catch (error) {
-      alert('Failed to create project. Please try again.');
+    //   if (res.ok) {
+    //     const data = await res.json();
+    //     setShowProjectModal(false);
+    //     setProjectName('');
+    //     setSelectedFile(null);
+    //     setMultiLineText('');
+    //     setInputMethod('csv');
+    //     fetchProjects();
+    //     // Navigate to the new project
+    //     navigate(`/recording/${data.project_id}`);
+    //   } else {
+    //     const error = await res.json();
+    //     alert(`Error: ${error.detail}`);
+    //   }
+    } catch (res) {
+      alert('Failed to create project. Please try again. response: ' + res);
     }
   };
 

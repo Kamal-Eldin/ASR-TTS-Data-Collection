@@ -6,6 +6,8 @@ LABEL description='''The voice and text data annotation platform. \
                     Enables the annotation of text to speech targets for TTS; \
                     speech to text targets for ASR applications.'''
 
+ARG APP_PORT
+
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -44,7 +46,7 @@ COPY --from=frontend-builder /app/frontend/dist ./static
 RUN mkdir -p /app/backend/data/recordings && chmod -R 777 /app/backend/data
 
 # Expose the port the backend will run on
-EXPOSE 8100
+EXPOSE ${APP_PORT}
 
 # Start Uvicorn server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8100"]
+CMD uvicorn main:app --host 0.0.0.0 --port $APP_PORT
