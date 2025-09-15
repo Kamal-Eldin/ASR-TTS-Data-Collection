@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const BACKEND_URL = 'http://localhost:8000';
+
+const BACKEND_URL = 'http://localhost:8500';
 
 type RecordingMap = { [text: string]: string };
 

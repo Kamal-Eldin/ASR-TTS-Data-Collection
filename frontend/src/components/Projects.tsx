@@ -81,22 +81,20 @@ function Projects() {
           body: formData,
         });
       }
-      alert(`create project response:", ${res.json()}`);
-      
-    //   if (res.ok) {
-    //     const data = await res.json();
-    //     setShowProjectModal(false);
-    //     setProjectName('');
-    //     setSelectedFile(null);
-    //     setMultiLineText('');
-    //     setInputMethod('csv');
-    //     fetchProjects();
-    //     // Navigate to the new project
-    //     navigate(`/recording/${data.project_id}`);
-    //   } else {
-    //     const error = await res.json();
-    //     alert(`Error: ${error.detail}`);
-    //   }
+      if (res.ok) {
+        const data = await res.json();
+        setShowProjectModal(false);
+        setProjectName('');
+        setSelectedFile(null);
+        setMultiLineText('');
+        setInputMethod('csv');
+        fetchProjects();
+        // Navigate to the new project
+        navigate(`/recording/${data.project_id}`);
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.detail}`);
+      }
     } catch (res) {
       alert('Failed to create project. Please try again. response: ' + res);
     }
