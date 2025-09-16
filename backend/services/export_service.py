@@ -8,7 +8,7 @@ from database.connection import SessionLocal
 from database.session import session_lock
 from services.settings_service import SettingsService
 from utils.logging import log_interaction
-
+from config import AppConfig
 
 '''
 export services offers 2 export methods to S3 and to huggingface
@@ -55,8 +55,8 @@ class ExportService:
     @staticmethod
     def export_to_huggingface(project_id: int):
         """Export project recordings to Hugging Face"""
-        token = SettingsService.get_setting("huggingface_token", "")
-        repo_id = SettingsService.get_setting("huggingface_repo", "")
+        token = SettingsService.get_setting("huggingface_token", default=AppConfig.HUGGINGFACE_TOKEN)
+        repo_id = SettingsService.get_setting("huggingface_repo", default=AppConfig.HUGGINGFACE_REPO)
         
         if not token or not repo_id:
             return {"status": "error", "detail": "Hugging Face token or repo not configured"}
