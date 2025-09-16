@@ -3,9 +3,9 @@ from logging import getLogger, StreamHandler, FileHandler, Formatter, DEBUG
 logger= getLogger(name="app-logger")
 logger.setLevel(DEBUG)
 
-log_form= Formatter(fmt="{module}-{levelname}-{message}", style='{')
+log_form= Formatter(fmt="{asctime}-{module}-{levelname}-{message}", style='{')
 to_console= StreamHandler()
-to_file= FileHandler(filename="/app/logs", mode='a')
+to_file= FileHandler(filename="/app/backend/logs/logs", mode='a')
 
 to_console.setFormatter(log_form)
 to_file.setFormatter(log_form)

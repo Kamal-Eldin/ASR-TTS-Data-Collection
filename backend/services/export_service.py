@@ -96,7 +96,7 @@ class ExportService:
                     # Create dataset
                     
                     ds = Dataset.from_list(dataset_rows)
-                    ds = ds.cast_column("audio", Audio())
+                    ds = ds.cast_column("audio", Audio(sampling_rate=16000, decode=False, mono=False))
                     
                     try:
                         # Push to hub with timeout

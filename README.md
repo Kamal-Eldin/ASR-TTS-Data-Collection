@@ -27,20 +27,35 @@ The following environment variables must be declared in the project environment.
 
 
 ```bash
+# Database Configuration
 MYSQL_HOST=db
 MYSQL_PORT=3306
 MYSQL_ROOT_PASSWORD=admin
 MYSQL_USER=admin
 MYSQL_PASSWORD=admin
 MYSQL_DATABASE=tts_dataset_generator
+
+# Application Configuration
+STORAGE_PATH=recordings
+
+# Export Timeouts (in seconds)
+HF_EXPORT_TIMEOUT=300
+S3_EXPORT_TIMEOUT=300
+
+# AWS Configuration (for S3 export)
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_DEFAULT_REGION=us-east-1
+
+# Hugging Face Configuration (for HF export)
+HUGGINGFACE_TOKEN=your_hf_token
+HUGGINGFACE_REPO=your_username/your_repo
+
+#app env vars
 APP_PORT=8500
 
 # Backend url with respect to a unified container for both front & backend services
-REACT_APP_BACKEND_URL=http://localhost:${APP_PORT}
-
-STORAGE_PATH=recordings
-HF_EXPORT_TIMEOUT=300
-S3_EXPORT_TIMEOUT=300
+BACKEND_URL=http://localhost:${APP_PORT}
 ```
 
 ## Database 

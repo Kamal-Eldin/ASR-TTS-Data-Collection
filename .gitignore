@@ -47,3 +47,4 @@ db_mount/
 *temp*
 *.ibt
 *.db
+data/

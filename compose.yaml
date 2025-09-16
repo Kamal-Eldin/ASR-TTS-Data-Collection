@@ -4,7 +4,7 @@ services:
   db:
     container_name: "mysql-db"
     env_file: 
-      - /workspaces/Voice-Dataset-Collection/.env
+      - ./.env
     image: mysql:8.0
     ports:
       - ${MYSQL_PORT}:${MYSQL_PORT}
@@ -20,7 +20,7 @@ services:
   app:
     container_name: "curator-app"
     env_file: 
-      - /workspaces/Voice-Dataset-Collection/.env
+      - ./.env
     build:
       context: .
       dockerfile: Dockerfile
@@ -30,24 +30,36 @@ services:
       - ${APP_PORT}:${APP_PORT}
     volumes:
       - type: bind
-        source: /workspaces/Voice-Dataset-Collection/logs
-        target: /app/logs
+        source: ./logs
+        target: /app/backend/logs/logs
+
+      - type: bind
+        source: ./recordings
+        target: /app/backend/recordings
+      
     networks:
       - data-collection-net
     develop:
       watch:
         - action: rebuild
-          path: /workspaces/Voice-Dataset-Collection/backend/
+          path: ./backend/
           target: /app/backend
 
         - action: rebuild
-          path: /workspaces/Voice-Dataset-Collection/frontend/
+          path: ./frontend/
           target: /app/backend
           
     depends_on:
       db:
         condition: service_healthy
+
 networks:
   data-collection-net: {}
+
+
+volumes:
+  recordings:
+    external: true
+
 
     
