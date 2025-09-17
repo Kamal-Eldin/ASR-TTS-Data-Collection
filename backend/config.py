@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+
 # Load environment variables
 load_dotenv()
 
@@ -59,5 +60,11 @@ class AppConfig:
     AWS_DEFAULT_REGION = os.getenv('AWS_DEFAULT_REGION', 'us-east-1')
     
     # Hugging Face Configuration
-    HUGGINGFACE_TOKEN = os.getenv('HUGGINGFACE_TOKEN', '')
+    HUGGINGFACE_TOKEN_FILE = os.getenv('HUGGINGFACE_TOKEN_FILE', '/run/secrets/hf_token')
     HUGGINGFACE_REPO = os.getenv('HUGGINGFACE_REPO', '') 
+
+    @classmethod
+    def get_hf_token(cls):
+        with open(cls.HUGGINGFACE_TOKEN_FILE, 'r') as file:
+            return file.read()
+

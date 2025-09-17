@@ -55,7 +55,7 @@ class ExportService:
     @staticmethod
     def export_to_huggingface(project_id: int):
         """Export project recordings to Hugging Face"""
-        token = SettingsService.get_setting("huggingface_token", default=AppConfig.HUGGINGFACE_TOKEN)
+        token = SettingsService.get_setting("huggingface_token", default=AppConfig.get_hf_token())
         repo_id = SettingsService.get_setting("huggingface_repo", default=AppConfig.HUGGINGFACE_REPO)
         
         if not token or not repo_id:
