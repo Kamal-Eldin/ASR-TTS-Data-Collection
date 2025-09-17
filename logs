@@ -1,2 +1,0 @@
-project_service-DEBUG-Retrieved db session: {'autocommit': False, 'bind': Engine(mysql+pymysql://admin:***@db:3306/tts_dataset_generator), 'autoflush': False, 'expire_on_commit': True}
-project_service-DEBUG-project_id: 4, prompt_count: 1, is_rtl: False

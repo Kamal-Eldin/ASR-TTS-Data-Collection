@@ -13,15 +13,12 @@ update_urls:
 
 
 deploy: update_urls
-	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
-	echo "placing env vars from template into root"
-	cp ./.env.template ./.env
-	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
+# 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
+# 	echo "placing env vars from template into root"
+# 	cp ./.env.template ./.env
+# 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
 	echo "disabling running compose components"
 	docker compose down
 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
-	echo "building system components"
-	docker compose build
-	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
 	echo "deploying container services and network..watch mode enabled for frontend & backend"
-	docker compose up -w
+	docker compose up --build -w

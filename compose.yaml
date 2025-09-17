@@ -2,10 +2,16 @@ name: asr-tts-curator
 
 services:
   db:
+    image: mysql:9
     container_name: "mysql-db"
-    env_file: 
+    secrets:
+      - db_root_password
+      - db_password
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+    env_file:
       - ./.env
-    image: mysql:8.0
     ports:
       - ${MYSQL_PORT}:${MYSQL_PORT}
     healthcheck:
@@ -19,7 +25,15 @@ services:
 
   app:
     container_name: "curator-app"
-    env_file: 
+    secrets:
+      - hf_token
+      - aws_access_id
+      - aws_access_secret
+    environment:
+      - HUGGINGFACE_TOKEN_FILE=/run/secrets/hf_token
+      - AWS_ACCESS_KEY_ID_FILE=/run/secrets/aws_access_id
+      - AWS_SECRET_ACCESS_KEY_FILE=/run/secrets/aws_access_secret
+    env_file:
       - ./.env
     build:
       context: .
@@ -30,8 +44,8 @@ services:
       - ${APP_PORT}:${APP_PORT}
     volumes:
       - type: bind
-        source: ./logs
-        target: /app/backend/logs/logs
+        source: ./logs.log
+        target: /app/backend/logs.log
 
       - type: bind
         source: ./recordings
@@ -55,6 +69,18 @@ services:
 
 networks:
   data-collection-net: {}
+
+secrets:
+  hf_token:
+    file: ./secrets/hf_token.txt
+  db_password:
+    file: ./secrets/db_password.txt
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+  aws_access_id:
+    file: ./secrets/aws_access_id.txt
+  aws_access_secret:
+    file: ./secrets/aws_access_secret.txt
 
 
 volumes:

@@ -48,3 +48,7 @@ db_mount/
 *.ibt
 *.db
 data/
+
+#keys
+secrets/
+*.txt
