@@ -1,39 +1,44 @@
 # STT-TTS Dataset Generator
 
-This is a fork of the original repo for the text-to-speech dataset collection web application [TTS Dataset Generator](https://github.com/Oddadmix/Voice-Dataset-Collection).
+This is the repo for the text-to-speech dataset collection web application [TTS Dataset Generator](https://github.com/Oddadmix/Voice-Dataset-Collection).
 
-The application supports CSV upload and multi-line text input, multiple projects, RTL language support, and export to Amazon S3 and Hugging Face.
+The application supports CSV upload and multi-line text input, multiple projects, RTL language support, and exports to Hugging Face.
+> Export to AWS S3 is under development
 ## Quick Start
 
 1. Clone the repo
    ```bash
    git clone https://github.com/Kamal-Eldin/ASR-TTS-Data-Collection
    ```
-2. Ensure docker daemon is running
+2. Ensure docker desktop is running
 3. Open project in vscode devcontainer
-   > Ensures the installation of dependencies
+   > - `devcontainer.json`:  
+   Ensures the installation of python base image and project dependencies, notably: `python 3.12-bookworm`, `Node.js 16` and `docker-in-docker` <br>
+   > - `postCreate.sh `: <br>
+   Holds the `postCreateCommand` to install python dependencies as per `./requirements.txt`
 
 4. Execute the make target `deploy`
-```shell
-> make deploy
-```
+   ```bash
+   make deploy
+   ```
 Visit `http://localhost:8500` to reach the web app
 
 
 #### Environment Variables
-The make target copies `.env.template` into `.env` at the root path for setting up docker compose.
+The make target `deploy` copies `project.config` into `.env` at the root path for setting up docker compose services.
 
-The following environment variables must be declared in the project environment. These variables are curated in `.env.template` at the repo's root.
-
+The following environment variables must be declared in the project environment. These variables are curated in `project.config` at the repo's root.
 
 ```bash
 # Database Configuration
-MYSQL_HOST=db
+MYSQL_HOST=db  # must be the name of the compose service name for the database container
 MYSQL_PORT=3306
-MYSQL_ROOT_PASSWORD=admin
 MYSQL_USER=admin
-MYSQL_PASSWORD=admin
 MYSQL_DATABASE=tts_dataset_generator
+
+# paths to secret file mount in the db container
+MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password 
+MYSQL_PASSWORD_FILE=/run/secrets/db_password           
 
 # Application Configuration
 STORAGE_PATH=recordings
@@ -43,23 +48,38 @@ HF_EXPORT_TIMEOUT=300
 S3_EXPORT_TIMEOUT=300
 
 # AWS Configuration (for S3 export)
-AWS_ACCESS_KEY_ID=your_aws_access_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret_key
 AWS_DEFAULT_REGION=us-east-1
+# paths to secret file mount in the app container for aws creds
+AWS_ACCESS_KEY_ID_FILE=/run/secrets/aws_access_id
+AWS_SECRET_ACCESS_KEY_FILE=/run/secrets/aws_access_secret
 
 # Hugging Face Configuration (for HF export)
-HUGGINGFACE_TOKEN=your_hf_token
 HUGGINGFACE_REPO=your_username/your_repo
+# paths to secret file mount in the app container for hugging face
 
-#app env vars
+# Port to access the application's frontend
 APP_PORT=8500
 
 # Backend url with respect to a unified container for both front & backend services
 BACKEND_URL=http://localhost:${APP_PORT}
 ```
+#### WARNING!
+> Each time the `APP_PORT` environment variable or the `BACKEND_URL` are changed, the make `deploy` target must be re-executed
+## Secrets
+The directory `./secrets` at root should hold 5 .txt files (gitignored) for the project secrets. 2 of which are mandatory for the mysql database setup (i.e., db_password.txt, db_root_password.txt)
+
+#### Export creds to aws s3 
+1. aws_access_id.txt
+2. aws_access_secret.txt
+#### DB setup
+3. db_password.txt
+4. db_root_password.txt
+#### Export token to hugging face
+5. hf_token.txt
 
 ## Database 
 Available as a docker container, with in the docker compose network.
+The current image tag is `docker.io/mysql:9`
 
 
 ## Features

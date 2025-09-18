@@ -8,8 +8,8 @@ services:
       - db_root_password
       - db_password
     environment:
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
-      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+      - MYSQL_ROOT_PASSWORD_FILE=${MYSQL_ROOT_PASSWORD_FILE}
+      - MYSQL_PASSWORD_FILE=${MYSQL_PASSWORD_FILE}
     env_file:
       - ./.env
     ports:
@@ -29,10 +29,12 @@ services:
       - hf_token
       - aws_access_id
       - aws_access_secret
+      - db_password
     environment:
-      - HUGGINGFACE_TOKEN_FILE=/run/secrets/hf_token
-      - AWS_ACCESS_KEY_ID_FILE=/run/secrets/aws_access_id
-      - AWS_SECRET_ACCESS_KEY_FILE=/run/secrets/aws_access_secret
+      - HUGGINGFACE_TOKEN_FILE=${HUGGINGFACE_TOKEN_FILE}
+      - AWS_ACCESS_KEY_ID_FILE=${AWS_ACCESS_KEY_ID_FILE}
+      - AWS_SECRET_ACCESS_KEY_FILE=${AWS_SECRET_ACCESS_KEY_FILE}
+      - MYSQL_PASSWORD_FILE=${MYSQL_PASSWORD_FILE}
     env_file:
       - ./.env
     build:

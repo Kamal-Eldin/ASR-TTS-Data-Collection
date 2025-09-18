@@ -31,7 +31,6 @@ recordings/
 *.wav
 *.mp3
 *.ogg
-*.json
 *.jsonl
 
 # Logs
@@ -50,5 +49,4 @@ db_mount/
 data/
 
 #keys
-secrets/
 *.txt

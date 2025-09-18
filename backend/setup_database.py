@@ -21,7 +21,7 @@ def create_database_if_not_exists():
             host=DatabaseConfig.MYSQL_HOST,
             port=DatabaseConfig.MYSQL_PORT,
             user=DatabaseConfig.MYSQL_USER,
-            password=DatabaseConfig.MYSQL_PASSWORD,
+            password=DatabaseConfig.get_db_password(),
             charset='utf8mb4'
         )
         
@@ -49,7 +49,7 @@ def test_db_connection():
             host=DatabaseConfig.MYSQL_HOST,
             port=DatabaseConfig.MYSQL_PORT,
             user=DatabaseConfig.MYSQL_USER,
-            password=DatabaseConfig.MYSQL_PASSWORD,
+            password=DatabaseConfig.get_db_password(),
             database=DatabaseConfig.MYSQL_DATABASE,
             charset='utf8mb4'
         )

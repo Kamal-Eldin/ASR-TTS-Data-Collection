@@ -12,20 +12,26 @@ class DatabaseConfig:
     MYSQL_HOST = os.getenv('MYSQL_HOST', 'localhost')
     MYSQL_PORT = int(os.getenv('MYSQL_PORT', 3306))
     MYSQL_USER = os.getenv('MYSQL_USER', 'root')
-    MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', '')
+    MYSQL_PASSWORD_FILE = os.getenv('MYSQL_PASSWORD_FILE', '')
     MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'tts_dataset_generator')
     
     # SQLite Configuration (default)
     SQLITE_DATABASE = os.getenv('SQLITE_DATABASE', 'data/tts_dataset.db')
     
     @classmethod
+    def get_db_password(cls):
+        with open(cls.MYSQL_PASSWORD_FILE, 'r') as file:
+            return file.read() 
+         
+    @classmethod
     def get_database_url(cls):
         """Get database URL - defaults to SQLite for easier setup"""
         # Check if MySQL is explicitly configured and available
-        if (cls.MYSQL_HOST and cls.MYSQL_USER and cls.MYSQL_PASSWORD and 
+        MYSQL_PASSWORD= cls.get_db_password()
+        if (cls.MYSQL_HOST and cls.MYSQL_USER and MYSQL_PASSWORD and 
             cls.MYSQL_DATABASE):
             print(f"successfully retrieved mysql connection creds and db url...")
-            return f"mysql+pymysql://{cls.MYSQL_USER}:{cls.MYSQL_PASSWORD}@{cls.MYSQL_HOST}:{cls.MYSQL_PORT}/{cls.MYSQL_DATABASE}"
+            return f"mysql+pymysql://{cls.MYSQL_USER}:{MYSQL_PASSWORD}@{cls.MYSQL_HOST}:{cls.MYSQL_PORT}/{cls.MYSQL_DATABASE}"
         else:
             # Default to SQLite for easier setup
             print(f"failed to retrieve mysql creds, defaulting to sqlite connection creds...")
@@ -55,16 +61,25 @@ class AppConfig:
     S3_EXPORT_TIMEOUT = int(os.getenv('S3_EXPORT_TIMEOUT', 300))
     
     # AWS Configuration
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+    AWS_ACCESS_KEY_ID_FILE = os.getenv('AWS_ACCESS_KEY_ID', '')
+    AWS_SECRET_ACCESS_KEY_FILE = os.getenv('AWS_SECRET_ACCESS_KEY', '')
     AWS_DEFAULT_REGION = os.getenv('AWS_DEFAULT_REGION', 'us-east-1')
     
     # Hugging Face Configuration
     HUGGINGFACE_TOKEN_FILE = os.getenv('HUGGINGFACE_TOKEN_FILE', '/run/secrets/hf_token')
-    HUGGINGFACE_REPO = os.getenv('HUGGINGFACE_REPO', '') 
+    HUGGINGFACE_REPO = os.getenv('HUGGINGFACE_REPO', '')       
 
     @classmethod
     def get_hf_token(cls):
         with open(cls.HUGGINGFACE_TOKEN_FILE, 'r') as file:
             return file.read()
-
+        
+    @classmethod
+    def get_aws_access_id(cls):
+        with open(cls.AWS_ACCESS_KEY_ID_FILE, 'r') as file:
+            return file.read()
+        
+    @classmethod
+    def get_aws_access_secret(cls):
+        with open(cls.AWS_SECRET_ACCESS_KEY_FILE, 'r') as file:
+            return file.read()
