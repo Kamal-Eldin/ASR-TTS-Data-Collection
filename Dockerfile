@@ -1,6 +1,6 @@
 # Stage 1: Build the React frontend
 FROM node:18-alpine AS frontend-builder
-LABEL name="ASR-TTS-Curator"
+LABEL name="docker.io/kameldin/asr-tts-curator:0.1"
 LABEL version="0.1"
 LABEL description='''The voice and text data annotation platform. \
                     Enables the annotation of text to speech targets for TTS; \

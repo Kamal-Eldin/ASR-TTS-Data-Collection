@@ -34,7 +34,9 @@
 				"mutantdino.resourcemonitor",
 				"streetsidesoftware.code-spell-checker",
 				"ms-vscode.makefile-tools",
-				"cweijan.vscode-mysql-client2"
+				"cweijan.vscode-mysql-client2",
+				"GitHub.vscode-github-actions",
+				"redhat.vscode-yaml"
 			]
 		}
 	},

@@ -25,6 +25,7 @@ services:
 
   app:
     container_name: "curator-app"
+    image: docker.io/kameldin/asr-tts-curator:0.1
     secrets:
       - hf_token
       - aws_access_id
