@@ -14,11 +14,11 @@ update_urls:
 
 deploy: update_urls
 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
-	echo "placing env vars from template into root"
-	cp ./project.config ./.env
+	echo "placing env vars from project.conf into compose .env file"
+	cp ./project.conf ./.env
 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
-	echo "stopping running services"
-	docker compose down
-	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
+# 	echo "stopping running services"
+# 	docker compose down
+# 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
 	echo "deploying compose services and network..watch mode enabled for frontend & backend directories"
 	docker compose up --build -w

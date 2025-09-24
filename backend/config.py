@@ -20,6 +20,8 @@ class DatabaseConfig:
     
     @classmethod
     def get_db_password(cls):
+        valid_filepath = os.path.exists(cls.MYSQL_PASSWORD_FILE)
+        assert valid_filepath, f"MYSQL_PASSWORD_FILE cannot be found neither at {cls.MYSQL_PASSWORD_FILE} nor defaults"
         with open(cls.MYSQL_PASSWORD_FILE, 'r') as file:
             return file.read() 
          

@@ -1,5 +1,6 @@
-import { useRef, useState, useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { encodeWAV, mergeBuffers, createAudioContext } from '../utils/wavEncoder';
 
 
 const BACKEND_URL = 'http://localhost:8500';
@@ -26,10 +27,14 @@ function Recording() {
   const [existingRecordings, setExistingRecordings] = useState<{[text: string]: {filename: string, recorded_at: string}}>({});
   const [showRecordingsList, setShowRecordingsList] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const chunks = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const audioBuffers = useRef<Float32Array[]>([]);
+  const isRecordingRef = useRef<boolean>(false);
   const [exporting, setExporting] = useState<null | 's3' | 'hf'>(null);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportLog, setExportLog] = useState<string[]>([]);
@@ -40,6 +45,18 @@ function Recording() {
     if (projectId) {
       loadProject(parseInt(projectId));
     }
+    
+    // Cleanup audio context on unmount
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
   }, [projectId]);
 
   const loadProject = async (projectId: number) => {
@@ -130,59 +147,138 @@ function Recording() {
     }
   };
 
-  // Recording logic
+  // Recording logic with raw PCM capture
   const startRecording = async () => {
     if (!navigator.mediaDevices || !project) return alert('No media devices or no project selected');
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
-      setMediaRecorder(mr);
-      chunks.current = [];
-      mr.ondataavailable = (e) => chunks.current.push(e.data);
-      mr.onstop = async () => {
-        // Prevent multiple uploads if stopRecording is called multiple times
-        if (isUploading) return;
+      // Request high-quality audio with specific constraints
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          channelCount: 1, // Mono recording
+          sampleRate: 48000, // High sample rate for quality
+          sampleSize: 16, // 16-bit samples
+          echoCancellation: false, // Disable processing for raw audio
+          noiseSuppression: false,
+          autoGainControl: false
+        } 
+      });
+      
+      streamRef.current = stream;
+      
+      // Create audio context for processing
+      if (!audioContextRef.current) {
+        audioContextRef.current = createAudioContext();
+      }
+      
+      const audioContext = audioContextRef.current;
+      const source = audioContext.createMediaStreamSource(stream);
+      sourceRef.current = source;
+      
+      // Create script processor for capturing raw PCM data
+      // Buffer size of 4096 for good balance between latency and performance
+      const bufferSize = 4096;
+      const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+      processorRef.current = processor;
+      
+      // Clear previous buffers
+      audioBuffers.current = [];
+      
+      // Capture raw PCM data
+      processor.onaudioprocess = (e) => {
+        // Use ref to check recording state to avoid closure issues
+        if (!isRecordingRef.current) return;
         
-        setIsUploading(true);
-        try {
-          const blob = new Blob(chunks.current, { type: 'audio/wav' });
-          const url = URL.createObjectURL(blob);
-          setAudioUrl(url);
-          
-          // Upload to backend
-          const formData = new FormData();
-          formData.append('text', prompts[currentIdx]);
-          formData.append('audio', new File([blob], 'audio.wav'));
-          formData.append('project_id', project.id.toString());
-          
-          const response = await fetch(`${BACKEND_URL}/upload_audio/`, {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (response.ok) {
-            setRecordings((prev) => ({ ...prev, [prompts[currentIdx]]: url }));
-            // Refresh project data to update progress
-            // await refreshProjectData();
-          } else {
-            console.error('Failed to upload recording');
-          }
-        } catch (error) {
-          console.error('Error uploading recording:', error);
-        } finally {
-          setIsUploading(false);
+        const inputData = e.inputBuffer.getChannelData(0);
+        // Create a copy of the data
+        const buffer = new Float32Array(inputData.length);
+        buffer.set(inputData);
+        audioBuffers.current.push(buffer);
+        
+        // Debug: log buffer info periodically
+        if (audioBuffers.current.length % 10 === 0) {
+          console.log(`Captured ${audioBuffers.current.length} buffers, latest size: ${buffer.length}`);
         }
       };
-      mr.start();
+      
+      // Connect the audio graph
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+      
+      // Set both state and ref
+      isRecordingRef.current = true;
       setIsRecording(true);
+      
+      console.log('Recording started, sample rate:', audioContext.sampleRate);
     } catch (error) {
+      console.error('Error starting recording:', error);
       alert('Failed to access microphone. Please check permissions.');
     }
   };
 
-  const stopRecording = () => {
-    mediaRecorder?.stop();
+  const stopRecording = async () => {
+    if (!isRecording || !audioContextRef.current) return;
+    
+    // Set recording flag to false immediately
+    isRecordingRef.current = false;
     setIsRecording(false);
+    
+    console.log(`Stopping recording. Captured ${audioBuffers.current.length} buffers`);
+    
+    // Prevent multiple uploads
+    if (isUploading) return;
+    setIsUploading(true);
+    
+    try {
+      // Disconnect audio nodes
+      if (sourceRef.current && processorRef.current) {
+        sourceRef.current.disconnect();
+        processorRef.current.disconnect();
+      }
+      
+      // Stop all tracks in the stream
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      
+      // Merge all audio buffers
+      const mergedBuffer = mergeBuffers(audioBuffers.current);
+      
+      // Get the actual sample rate from the audio context
+      const sampleRate = audioContextRef.current.sampleRate;
+      
+      // Encode to WAV format
+      const wavBlob = encodeWAV(mergedBuffer, sampleRate);
+      
+      // Create object URL for playback
+      const url = URL.createObjectURL(wavBlob);
+      setAudioUrl(url);
+      
+      // Upload to backend
+      const formData = new FormData();
+      formData.append('text', prompts[currentIdx]);
+      formData.append('audio', new File([wavBlob], 'recording.wav', { type: 'audio/wav' }));
+      formData.append('project_id', project!.id.toString());
+      
+      const response = await fetch(`${BACKEND_URL}/upload_audio/`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        setRecordings((prev) => ({ ...prev, [prompts[currentIdx]]: url }));
+        console.log('Recording uploaded successfully');
+      } else {
+        console.error('Failed to upload recording');
+      }
+    } catch (error) {
+      console.error('Error stopping recording:', error);
+    } finally {
+      setIsUploading(false);
+      
+      // Clear buffers for next recording
+      audioBuffers.current = [];
+    }
   };
 
   const playOrStop = () => {
