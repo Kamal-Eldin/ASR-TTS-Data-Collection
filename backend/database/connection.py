@@ -14,6 +14,7 @@ engine = None
 
 # Check if we should use MySQL or SQLite
 if DATABASE_URL.startswith('mysql'):
+    print(f"Retrieved db url: {DATABASE_URL}")
     try:
         engine = create_engine(
             DATABASE_URL, 
@@ -22,6 +23,7 @@ if DATABASE_URL.startswith('mysql'):
             pool_size=10,
             max_overflow=20
         )
+        print (f"Created db engine {engine}")
         # Test the connection
         with engine.connect() as conn:
             conn.execute(text("SELECT 1")).fetchone()

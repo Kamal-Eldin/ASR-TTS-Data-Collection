@@ -8,7 +8,7 @@ import subprocess
 import sys
 import os
 import platform
-from config import DatabaseConfig
+from . config import DatabaseConfig
 
 def check_mysql_installed():
     """Check if MySQL is installed"""
@@ -146,11 +146,10 @@ def main():
     # Setup database
     print("\n📊 Setting up database...")
     try:
-        from setup_database import main as setup_db
+        from . setup_database import main as setup_db
         setup_db()
     except Exception as e:
         print(f"❌ Database setup failed: {e}")
-        return
     
     print("\n🎉 MySQL setup completed successfully!")
     print("\n📝 Next steps:")

@@ -1,3 +1,20 @@
+from logging import getLogger, StreamHandler, FileHandler, Formatter, DEBUG
+
+
+logger= getLogger(name="app-logger")
+logger.setLevel(DEBUG)
+
+log_form= Formatter(fmt="{asctime}-{module}-{levelname}-{message}", style='{')
+to_console= StreamHandler()
+to_file= FileHandler(filename="./logs.log", mode='a') # where . is repo root if local and /app/backend if container
+
+to_console.setFormatter(log_form)
+to_file.setFormatter(log_form)
+
+logger.addHandler(to_console)
+logger.addHandler(to_file)
+
+
 def log_interaction(action: str, data: dict):
     """Log user interactions (currently just prints to console)"""
     # TODO: Implement proper logging to database

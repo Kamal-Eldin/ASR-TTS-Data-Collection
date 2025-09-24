@@ -31,11 +31,22 @@ recordings/
 *.wav
 *.mp3
 *.ogg
-*.json
 *.jsonl
 
 # Logs
 *.log
+*log*
+logs
 
 # VSCode
-.vscode/ 
+.vscode/
+
+# db data
+db_mount/
+*temp*
+*.ibt
+*.db
+data/
+
+#keys
+*.txt

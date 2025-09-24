@@ -1,5 +1,6 @@
 import os
 import boto3
+from boto3 import client
 import pandas as pd
 from datasets import Dataset, Audio
 from sqlalchemy.orm import Session, joinedload
@@ -8,19 +9,31 @@ from database.connection import SessionLocal
 from database.session import session_lock
 from services.settings_service import SettingsService
 from utils.logging import log_interaction
+from config import AppConfig
+
+'''
+export services offers 2 export methods to S3 and to huggingface
+'''
+
 
 class ExportService:
     @staticmethod
-    def export_to_s3(payload: dict = None):
+    def get_s3_client()-> client:
+        s3:client = client("s3", 
+                        aws_access_key_id= AppConfig.get_aws_access_id(),
+                        aws_secret_access_key= AppConfig.get_aws_access_secret()
+                        )
+        return s3
+    @classmethod
+    def export_to_s3(cls, payload: dict = None):
         """Export recordings to Amazon S3"""
-        bucket = SettingsService.get_setting("s3_bucket", "")
+        bucket: str = SettingsService.get_setting("s3_bucket", "")
         storage_path = SettingsService.get_setting("storage_path", "recordings")
-        
+        s3:client = cls.get_s3_client()
+        print(s3)
+
         if not bucket:
             return {"status": "error", "detail": "S3 bucket not configured"}
-        
-        s3 = boto3.client("s3")
-        
         if payload and payload.get("filename"):
             fname = payload["filename"]
             fpath = os.path.join(storage_path, fname)
@@ -39,7 +52,9 @@ class ExportService:
             fpath = os.path.join(storage_path, fname)
             if os.path.isfile(fpath):
                 try:
+                    print(f"uploading file {fname} to {bucket} at {fpath}")
                     s3.upload_file(fpath, bucket, fname)
+
                     uploaded.append(fname)
                 except Exception as e:
                     continue
@@ -49,8 +64,8 @@ class ExportService:
     @staticmethod
     def export_to_huggingface(project_id: int):
         """Export project recordings to Hugging Face"""
-        token = SettingsService.get_setting("huggingface_token", "")
-        repo_id = SettingsService.get_setting("huggingface_repo", "")
+        token = SettingsService.get_setting("huggingface_token", default=AppConfig.get_hf_token())
+        repo_id = SettingsService.get_setting("huggingface_repo", default=AppConfig.HUGGINGFACE_REPO)
         
         if not token or not repo_id:
             return {"status": "error", "detail": "Hugging Face token or repo not configured"}
@@ -90,7 +105,7 @@ class ExportService:
                     # Create dataset
                     
                     ds = Dataset.from_list(dataset_rows)
-                    ds = ds.cast_column("audio", Audio())
+                    ds = ds.cast_column("audio", Audio(sampling_rate=16000, decode=False, mono=False))
                     
                     try:
                         # Push to hub with timeout

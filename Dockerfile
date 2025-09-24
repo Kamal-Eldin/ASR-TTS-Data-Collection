@@ -1,5 +1,13 @@
 # Stage 1: Build the React frontend
 FROM node:18-alpine AS frontend-builder
+LABEL name="ASR-TTS-Curator"
+LABEL version="0.1"
+LABEL description='''The voice and text data annotation platform. \
+                    Enables the annotation of text to speech targets for TTS; \
+                    speech to text targets for ASR applications.'''
+
+ARG APP_PORT
+
 WORKDIR /app
 
 # Copy package files and install dependencies
@@ -20,6 +28,7 @@ WORKDIR /app/backend
 # Install system dependencies needed for pymysql and other libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    curl\
     default-libmysqlclient-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,7 +46,7 @@ COPY --from=frontend-builder /app/frontend/dist ./static
 RUN mkdir -p /app/backend/data/recordings && chmod -R 777 /app/backend/data
 
 # Expose the port the backend will run on
-EXPOSE 8000
+EXPOSE ${APP_PORT}
 
 # Start Uvicorn server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD uvicorn main:app --host 0.0.0.0 --port $APP_PORT

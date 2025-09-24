@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const BACKEND_URL = 'http://localhost:8000';
-
+const BACKEND_URL = 'http://localhost:8500';
 interface Project {
   id: number;
   name: string;
@@ -82,7 +81,6 @@ function Projects() {
           body: formData,
         });
       }
-      
       if (res.ok) {
         const data = await res.json();
         setShowProjectModal(false);
@@ -97,8 +95,8 @@ function Projects() {
         const error = await res.json();
         alert(`Error: ${error.detail}`);
       }
-    } catch (error) {
-      alert('Failed to create project. Please try again.');
+    } catch (res) {
+      alert('Failed to create project. Please try again. response: ' + res);
     }
   };
 

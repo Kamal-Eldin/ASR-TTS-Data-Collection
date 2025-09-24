@@ -1,26 +1,86 @@
-# TTS Dataset Generator
+# STT-TTS Dataset Generator
 
-A web application for collecting high-quality voice datasets with support for CSV upload and multi-line text input, multiple projects, RTL language support, and export to Amazon S3 and Hugging Face.
+This is the repo for the text-to-speech dataset collection web application [TTS Dataset Generator](https://github.com/Oddadmix/Voice-Dataset-Collection).
 
+The application supports CSV upload and multi-line text input, multiple projects, RTL language support, and exports to Hugging Face.
+> Export to AWS S3 is under development
 ## Quick Start
 
+1. Clone the repo
+   ```bash
+   git clone https://github.com/Kamal-Eldin/ASR-TTS-Data-Collection
+   ```
+2. Ensure docker desktop is running
+3. Open project in vscode devcontainer
+   > - `devcontainer.json`:  
+   Ensures the installation of python base image and project dependencies, notably: `python 3.12-bookworm`, `Node.js 16` and `docker-in-docker` <br>
+   > - `postCreate.sh `: <br>
+   Holds the `postCreateCommand` to install python dependencies as per `./requirements.txt`
+
+4. Execute the make target `deploy`
+   ```bash
+   make deploy
+   ```
+Visit `http://localhost:8500` to reach the web app
+
+
+#### Environment Variables
+The make target `deploy` copies `project.config` into `.env` at the root path for setting up docker compose services.
+
+The following environment variables must be declared in the project environment. These variables are curated in `project.config` at the repo's root.
+
 ```bash
-# Clone and setup
-git clone https://github.com/Oddadmix/Voice-Dataset-Collection
-cd Voice-Dataset-Collection
+# Database Configuration
+MYSQL_HOST=db  # must be the name of the compose service name for the database container
+MYSQL_PORT=3306
+MYSQL_USER=admin
+MYSQL_DATABASE=tts_dataset_generator
 
-# Backend (SQLite for quick start)
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
+# paths to secret file mount in the db container
+MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password 
+MYSQL_PASSWORD_FILE=/run/secrets/db_password           
 
-# Frontend (in new terminal)
-cd frontend
-npm install
-npm run dev
+# Application Configuration
+STORAGE_PATH=recordings
+
+# Export Timeouts (in seconds)
+HF_EXPORT_TIMEOUT=300
+S3_EXPORT_TIMEOUT=300
+
+# AWS Configuration (for S3 export)
+AWS_DEFAULT_REGION=us-east-1
+# paths to secret file mount in the app container for aws creds
+AWS_ACCESS_KEY_ID_FILE=/run/secrets/aws_access_id
+AWS_SECRET_ACCESS_KEY_FILE=/run/secrets/aws_access_secret
+
+# Hugging Face Configuration (for HF export)
+HUGGINGFACE_REPO=your_username/your_repo
+# paths to secret file mount in the app container for hugging face
+
+# Port to access the application's frontend
+APP_PORT=8500
+
+# Backend url with respect to a unified container for both front & backend services
+BACKEND_URL=http://localhost:${APP_PORT}
 ```
+#### WARNING!
+> Each time the `APP_PORT` environment variable or the `BACKEND_URL` are changed, the make `deploy` target must be re-executed
+## Secrets
+The directory `./secrets` at root should hold 5 .txt files (gitignored) for the project secrets. 2 of which are mandatory for the mysql database setup (i.e., db_password.txt, db_root_password.txt)
 
-Visit `http://localhost:5173` to start creating voice datasets!
+#### Export creds to aws s3 
+1. aws_access_id.txt
+2. aws_access_secret.txt
+#### DB setup
+3. db_password.txt
+4. db_root_password.txt
+#### Export token to hugging face
+5. hf_token.txt
+
+## Database 
+Available as a docker container, with in the docker compose network.
+The current image tag is `docker.io/mysql:9`
+
 
 ## Features
 
@@ -45,97 +105,10 @@ Visit `http://localhost:5173` to start creating voice datasets!
 
 ## Prerequisites
 
+- Docker Desktop
 - Python 3.8+
 - Node.js 16+
 - MySQL 8.0+ (optional - SQLite fallback available)
-
-## Installation
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/Oddadmix/Voice-Dataset-Collection
-cd Voice-Dataset-Collection
-```
-
-### 2. Backend Setup
-
-#### Install Python Dependencies
-
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-#### Database Setup
-
-The application supports both MySQL and SQLite:
-
-**Option A: MySQL (Recommended for Production)**
-```bash
-# 1. Install MySQL (if not already installed)
-# macOS: brew install mysql
-# Ubuntu/Debian: sudo apt install mysql-server
-# Windows: Download from https://dev.mysql.com/downloads/mysql/
-
-# 2. Configure database settings
-cp env.example .env
-# Edit .env with your MySQL credentials
-
-# 3. Start MySQL and setup database
-python start_mysql.py
-
-# 4. Start the application
-uvicorn main:app --reload
-```
-
-**Option B: SQLite (Development/Testing)**
-```bash
-# The application will automatically fall back to SQLite if MySQL is not available
-# No additional setup required
-uvicorn main:app --reload
-```
-
-#### Environment Variables (Optional)
-
-Create a `.env` file in the backend directory:
-```bash
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_USER=root
-MYSQL_PASSWORD=your_password_here
-MYSQL_DATABASE=tts_dataset_generator
-STORAGE_PATH=recordings
-HF_EXPORT_TIMEOUT=300
-S3_EXPORT_TIMEOUT=300
-```
-
-### 3. Frontend Setup
-
-```bash
-cd frontend
-npm install
-```
-
-## Running the Application
-
-### 1. Start the Backend Server
-
-```bash
-cd backend
-uvicorn main:app --reload
-```
-
-The server will start at `http://localhost:8000`
-
-### 2. Start the Frontend Development Server
-
-```bash
-cd frontend
-npm run dev
-```
-
-The application will be available at `http://localhost:5173` (or the next available port)
 
 ## Usage
 
@@ -220,32 +193,6 @@ Configure where audio files are stored:
 
 ## Troubleshooting
 
-### Database Issues
-
-**MySQL Connection Problems:**
-```bash
-# Check if MySQL is running
-# macOS
-brew services list | grep mysql
-
-# Linux
-sudo systemctl status mysql
-
-# Test MySQL connection
-python start_mysql.py
-```
-
-**Automatic Fallback to SQLite:**
-- If MySQL is not available, the application automatically falls back to SQLite
-- This is perfect for development and testing
-- You'll see a message: "⚠️ MySQL connection failed, falling back to SQLite for development..."
-
-**Migration from SQLite to MySQL:**
-```bash
-# If you have existing data in SQLite and want to migrate to MySQL
-python migrate_sqlite_to_mysql.py
-```
-
 ### Port Conflicts
 
 If ports are already in use:
@@ -300,4 +247,4 @@ MIT
 
 ## Contributing
 
-Feel free to contirbute and open a PR
+Feel free to contribute and open a PR

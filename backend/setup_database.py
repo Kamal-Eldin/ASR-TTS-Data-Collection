@@ -21,7 +21,7 @@ def create_database_if_not_exists():
             host=DatabaseConfig.MYSQL_HOST,
             port=DatabaseConfig.MYSQL_PORT,
             user=DatabaseConfig.MYSQL_USER,
-            password=DatabaseConfig.MYSQL_PASSWORD,
+            password=DatabaseConfig.get_db_password(),
             charset='utf8mb4'
         )
         
@@ -42,14 +42,14 @@ def create_database_if_not_exists():
     
     return True
 
-def test_connection():
+def test_db_connection():
     """Test the database connection"""
     try:
         connection = pymysql.connect(
             host=DatabaseConfig.MYSQL_HOST,
             port=DatabaseConfig.MYSQL_PORT,
             user=DatabaseConfig.MYSQL_USER,
-            password=DatabaseConfig.MYSQL_PASSWORD,
+            password=DatabaseConfig.get_db_password(),
             database=DatabaseConfig.MYSQL_DATABASE,
             charset='utf8mb4'
         )
@@ -75,11 +75,11 @@ def main():
     
     # Create database
     if not create_database_if_not_exists():
-        return
+        print(f"failed to connect to mysql server or create database {DatabaseConfig.MYSQL_DATABASE}")
     
     # Test connection
-    if not test_connection():
-        return
+    if not test_db_connection():
+        print(f"failed to connect to database {DatabaseConfig.MYSQL_DATABASE}")
     
     print("\n✅ Database setup completed successfully!")
     print("\n📝 Next steps:")
