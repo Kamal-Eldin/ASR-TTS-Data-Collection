@@ -66,7 +66,7 @@ jobs:
             - name: generate-value
               id: gen-value
               run: |
-                app_port= 3000
+                app_port="3000"
                 echo "APP_PORT=${app_port}" >> $GITHUB_OUTPUT
 
 
