@@ -1,6 +1,15 @@
-name: first action
+name: triggered action
 "on":
-    workflow_dispatch
+    push:
+        branches:
+            - "release/*"
+
+    pull_request:
+      types:
+        - opened
+        - reopened
+
+    workflow_dispatch:
 
 jobs:
     hello-ubuntu:
