@@ -5,9 +5,13 @@ name: first action
             - "release/*"
 
     pull_request:
-      types:
-        - opened
-        - reopened
+        types:
+            - opened
+            - reopened
+        paths: 
+            - "backend/*"
+            - "!frontend/*"
+        
 
     workflow_dispatch:
 
