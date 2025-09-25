@@ -59,7 +59,7 @@ jobs:
                 cat "$GITHUB_EVENT_PATH"
 
     producer:
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-22.04
         outputs:
             app_port: ${{steps.gen-value.outputs.app_port}}
         steps:
