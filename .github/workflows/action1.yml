@@ -6,13 +6,17 @@ jobs:
     hello-ubuntu:
         runs-on: ubuntu-22.04
         steps:
+            - run: echo "this is the first step out of a 3 steps job. it has no prerequisites"
             - run: echo "hello world by ubuntu!"
+            - run: echo "It might has dependent downstream jobs"
 
     hello-python:
         runs-on: ubuntu-22.04
         steps:
             - run: print("hello from python")
               shell: python
+        needs:
+            - hello-ubuntu
 
     hello-thirdparty:
         runs-on: ubuntu-latest
@@ -20,6 +24,9 @@ jobs:
             - uses: jairogomz/hello-world-javascript-action-by-jairo@v1.0.1
               with:
                 who-to-greet: Omar
+        needs: 
+            - hello-ubuntu
+            - hello-python
 
 
 
