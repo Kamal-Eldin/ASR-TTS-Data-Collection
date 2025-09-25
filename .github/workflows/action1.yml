@@ -1,4 +1,4 @@
-name: triggered action
+name: first action
 "on":
     push:
         branches:
