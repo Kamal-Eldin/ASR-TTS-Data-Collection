@@ -13,7 +13,7 @@ name: first action
     workflow_dispatch:
 
 env:
-    WORFLOW_GLOBAL: "IAM A TEST FLOW"
+    WORKFLOW_GLOBAL: "IAM A TEST FLOW"
 
 jobs:
     hello-ubuntu:
@@ -31,7 +31,10 @@ jobs:
             - name: python-job
               env:
                 STEP_VAR: "step var for python"
-              run: print("hello from python", "reading $STEP_VAR")
+              run: |
+                import os
+                print("hello from python")
+                print(f"reading step var: {os.getenv('STEP_VAR')}")
               shell: python
         needs:
             - hello-ubuntu
