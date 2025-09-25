@@ -68,6 +68,7 @@ jobs:
               run: |
                 app_port="3000"
                 echo "APP_PORT=${app_port}" >> $GITHUB_OUTPUT
+                echo "APP_PORT=${app_port}" >> $GITHUB_ENV
 
 
             - name: inspect-python
@@ -76,9 +77,9 @@ jobs:
                 python
               run: |
                 import os
-                print(f"this is env var app_port: {os.getenv('APP_PORT')}")
+                print(f"this is sourced from gitEnv vars: {os.getenv('APP_PORT')}")
             
             - name: inspect-shell
               id: inspect-shell
               run: |
-                echo "from bash shell, this is the generated port: ${{steps.gen-value.outputs.app_port}}"
+                echo "from GitOutput, this is the port: ${{steps.gen-value.outputs.app_port}}"
