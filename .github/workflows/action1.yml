@@ -3,10 +3,24 @@ name: first action
     workflow_dispatch
 
 jobs:
-    hello-job:
+    hello-ubuntu:
         runs-on: ubuntu-22.04
         steps:
-            - run: echo "hello world"
+            - run: echo "hello world by ubuntu!"
+
+    hello-python:
+        runs-on: ubuntu-22.04
+        steps:
+            - run: print("hello from python")
+              shell: python
+
+    hello-thirdparty:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: jairogomz/hello-world-javascript-action-by-jairo@v1.0.1
+              with:
+                who-to-greet: Omar
+
 
 
 
