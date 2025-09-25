@@ -57,3 +57,28 @@ jobs:
                 echo "printing $GITHUB_EVENT_NAME content"
                 echo "rendering the github event path"
                 cat "$GITHUB_EVENT_PATH"
+
+    producer:
+        runs-on: ubuntu-20.04
+        outputs:
+            app_port: ${{steps.gen-value.outputs.app_port}}
+        steps:
+            - name: generate-value
+              id: gen-value
+              run: |
+                app_port= 3000
+                echo "APP_PORT=${app_port}" >> $GITHUB_OUTPUT
+
+
+            - name: inspect-python
+              id: inspect-python
+              shell:
+                python
+              run: |
+                import os
+                print(f"this is env var app_port: {os.getenv("APP_PORT")}")
+            
+            - name: inspect-shell
+              id: inspect-shell
+              run: |
+                echo "from bash shell, this is the generated port: ${{steps.gen-value.outputs.app_port}}"
