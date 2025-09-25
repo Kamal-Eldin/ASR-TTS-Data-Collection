@@ -45,8 +45,3 @@ jobs:
                 echo "printing $GITHUB_EVENT_NAME content"
                 echo "rendering the github event path"
                 cat "$GITHUB_EVENT_PATH"
-
-
-
-
-
