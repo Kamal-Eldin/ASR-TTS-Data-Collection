@@ -3,7 +3,6 @@ name: first action
     push:
         branches:
             - "release/*"
-
     pull_request:
         types:
             - opened
@@ -11,22 +10,28 @@ name: first action
         paths: 
             - "backend/*"
             - "!frontend/*"
-        
-
     workflow_dispatch:
+
+env:
+    WORFLOW_GLOBAL: "IAM A TEST FLOW"
 
 jobs:
     hello-ubuntu:
+        env:
+            JOB_VAR: "IAM UBUNTU 22"
         runs-on: ubuntu-22.04
         steps:
             - run: echo "this is the first step out of a 3 steps job. it has no prerequisites"
-            - run: echo "hello world by ubuntu!"
+            - run: echo "hello world by ubuntu!...Iam running >> $JOB_VAR -- Within the flow >> $WORKFLOW_GLOBAL"
             - run: echo "It might has dependent downstream jobs"
 
     hello-python:
         runs-on: ubuntu-22.04
         steps:
-            - run: print("hello from python")
+            - name: python-job
+              env:
+                STEP_VAR: "step var for python"
+              run: print("hello from python", "reading $STEP_VAR")
               shell: python
         needs:
             - hello-ubuntu
