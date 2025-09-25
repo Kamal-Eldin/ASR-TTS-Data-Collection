@@ -76,7 +76,7 @@ jobs:
                 python
               run: |
                 import os
-                print(f"this is env var app_port: {os.getenv("APP_PORT")}")
+                print(f"this is env var app_port: {os.getenv('APP_PORT')}")
             
             - name: inspect-shell
               id: inspect-shell
