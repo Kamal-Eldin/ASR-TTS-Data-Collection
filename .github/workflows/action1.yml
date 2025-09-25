@@ -37,6 +37,15 @@ jobs:
             - hello-ubuntu
             - hello-python
 
+    visualize-metadata:
+        runs-on: ubuntu-22.04
+        steps:
+            - name: "print gitflow metadata"
+              run: |
+                echo "printing $GITHUB_EVENT_NAME content"
+                echo "rendering the github event path"
+                cat "$GITHUB_EVENT_PATH"
+
 
 
 
