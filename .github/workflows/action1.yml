@@ -83,3 +83,12 @@ jobs:
               id: inspect-shell
               run: |
                 echo "from GitOutput, this is the port: ${{steps.gen-value.outputs.app_port}}"
+    
+    consumer:
+        runs-on: ubuntu-22.04
+        needs:
+            producer
+        steps:
+            - name: consume-var
+              run: |
+                echo "this is read for producer job: ${{needs.producer.outputs.app_port}}"
