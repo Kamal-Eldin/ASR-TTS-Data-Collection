@@ -98,7 +98,7 @@ jobs:
         steps:
             - run: echo "$PWD"
             - run: |
-                cd home/runner/work/ASR-TTS-Data-Collection/
+                cd /home/runner/work/ASR-TTS-Data-Collection
                 ls
 
             - name: provide-artifact
