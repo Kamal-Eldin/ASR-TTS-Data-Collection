@@ -98,18 +98,15 @@ jobs:
         needs:
             producer
         steps:
-            - name: get-artifact
+            - name: pick-artifact
               uses: actions/upload-artifact@v4
               with:
                 name: proj_config
                 path: |
-                    ./project.conf
+                    project.conf
 
             - name: use-artifact
-              uses: actions/download-artifact@v4
-              with:
-                name: proj_config
-                run: |
-                    echo "collected the artifact"
-                    cat project.conf
+              run: |
+                echo "collected the artifact"
+                cat project.conf
 
