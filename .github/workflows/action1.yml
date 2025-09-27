@@ -97,7 +97,9 @@ jobs:
         runs-on: ubuntu-22.04
         steps:
             - run: echo "$PWD"
-            - run: ls
+            - run: |
+                cd home/runner/work/ASR-TTS-Data-Collection/
+                ls
 
             - name: provide-artifact
               uses: actions/upload-artifact@v4
