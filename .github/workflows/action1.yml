@@ -98,15 +98,14 @@ jobs:
         needs:
             producer
         steps:
-            - name: pick-artifact
-              uses: actions/upload-artifact@v4
-              with:
-                name: proj_config
-                path: |
-                    project.conf
+            # - name: pick-artifact
+            #   uses: actions/upload-artifact@v4
+            #   with:
+            #     name: proj_config
+            #     path: |
+            #         project.conf
 
             - name: use-artifact
               run: |
-                echo "collected the artifact"
-                cat project.conf
+                echo "current workspace $GITHUB_WORKSPACE"
 
