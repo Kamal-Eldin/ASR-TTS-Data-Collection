@@ -96,9 +96,9 @@ jobs:
     artifact-producer:
         runs-on: ubuntu-22.04
         steps:
-            - name: pwd
-              run: echo "$PWD"
-              
+            - run: echo "$PWD"
+            - run: ls
+
             - name: provide-artifact
               uses: actions/upload-artifact@v4
               with:
