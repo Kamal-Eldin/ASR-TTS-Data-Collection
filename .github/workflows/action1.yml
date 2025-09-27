@@ -107,5 +107,5 @@ jobs:
 
             - name: use-artifact
               run: |
-                echo "current workspace $GITHUB_WORKSPACE"
+                ls $GITHUB_WORKSPACE
 
