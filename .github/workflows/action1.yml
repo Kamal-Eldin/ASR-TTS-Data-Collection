@@ -92,3 +92,24 @@ jobs:
             - name: consume-var
               run: |
                 echo "this is read for producer job: ${{needs.producer.outputs.app_port}}"
+
+    artifact-producer:
+        runs-on: ubuntu-22.04
+        needs:
+            producer
+        steps:
+            - name: get-artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: proj_config
+                path: |
+                    ./project.conf
+
+            - name: use-artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: proj_config
+                run: |
+                    echo "collected the artifact"
+                    cat project.conf
+
