@@ -101,8 +101,7 @@ jobs:
               with:
                 name: proj_config
                 path: |
-                    /home/runner/work/ASR-TTS-Data-Collection/project.conf
-
+                    /home/runner/work/ASR-TTS-Data-Collection/Dockerfile
     artifact-consumer:
         runs-on: ubuntu-22.04
         needs:
@@ -115,5 +114,4 @@ jobs:
             - name: use-artifact
               run: |
                 echo "collected the artifact"
-                cat project.conf
-
+                cat Dockerfile
