@@ -95,17 +95,25 @@ jobs:
 
     artifact-producer:
         runs-on: ubuntu-22.04
-        needs:
-            producer
         steps:
-            # - name: pick-artifact
-            #   uses: actions/upload-artifact@v4
-            #   with:
-            #     name: proj_config
-            #     path: |
-            #         project.conf
+            - name: provide-artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: proj_config
+                path: |
+                    /home/runner/work/ASR-TTS-Data-Collection/project.conf
 
+    artifact-consumer:
+        runs-on: ubuntu-22.04
+        needs:
+            artifact-producer
+        steps:
+            - name: get-artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: proj_config
             - name: use-artifact
               run: |
-                ls $GITHUB_WORKSPACE
+                echo "collected the artifact"
+                cat project.conf
 
