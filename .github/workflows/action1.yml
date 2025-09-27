@@ -105,8 +105,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                 name: provide-artifact
-                path: |
-                    /home/runner/work/ASR-TTS-Data-Collection/ASR-TTS-Data-Collection/Dockerfile
+                path: Dockerfile
     artifact-consumer:
         runs-on: ubuntu-22.04
         needs:
