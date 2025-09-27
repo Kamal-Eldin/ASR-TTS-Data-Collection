@@ -3,26 +3,38 @@ name: first action
     push:
         branches:
             - "release/*"
-
     pull_request:
-      types:
-        - opened
-        - reopened
-
+        types:
+            - opened
+            - reopened
+        paths: 
+            - "backend/*"
+            - "!frontend/*"
     workflow_dispatch:
+
+env:
+    WORKFLOW_GLOBAL: "IAM A TEST FLOW"
 
 jobs:
     hello-ubuntu:
+        env:
+            JOB_VAR: "IAM UBUNTU 22"
         runs-on: ubuntu-22.04
         steps:
             - run: echo "this is the first step out of a 3 steps job. it has no prerequisites"
-            - run: echo "hello world by ubuntu!"
+            - run: echo "hello world by ubuntu!...Iam running >> $JOB_VAR -- Within the flow >> $WORKFLOW_GLOBAL"
             - run: echo "It might has dependent downstream jobs"
 
     hello-python:
         runs-on: ubuntu-22.04
         steps:
-            - run: print("hello from python")
+            - name: python-job
+              env:
+                STEP_VAR: "step var for python"
+              run: |
+                import os
+                print("hello from python")
+                print(f"reading step var: {os.getenv('STEP_VAR')}")
               shell: python
         needs:
             - hello-ubuntu
@@ -37,7 +49,75 @@ jobs:
             - hello-ubuntu
             - hello-python
 
+    visualize-metadata:
+        runs-on: ubuntu-22.04
+        steps:
+            - name: "print gitflow metadata"
+              run: |
+                echo "printing $GITHUB_EVENT_NAME content"
+                echo "rendering the github event path"
+                cat "$GITHUB_EVENT_PATH"
+
+    producer:
+        runs-on: ubuntu-22.04
+        outputs:
+            app_port: ${{steps.gen-value.outputs.app_port}}
+        steps:
+            - name: generate-value
+              id: gen-value
+              run: |
+                app_port="3000"
+                echo "APP_PORT=${app_port}" >> $GITHUB_OUTPUT
+                echo "APP_PORT=${app_port}" >> $GITHUB_ENV
 
 
+            - name: inspect-python
+              id: inspect-python
+              shell:
+                python
+              run: |
+                import os
+                print(f"this is sourced from gitEnv vars: {os.getenv('APP_PORT')}")
+            
+            - name: inspect-shell
+              id: inspect-shell
+              run: |
+                echo "from GitOutput, this is the port: ${{steps.gen-value.outputs.app_port}}"
+    
+    consumer:
+        runs-on: ubuntu-22.04
+        needs:
+            producer
+        steps:
+            - name: consume-var
+              run: |
+                echo "this is read for producer job: ${{needs.producer.outputs.app_port}}"
 
+    artifact-producer:
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+            - run: echo "$PWD"
+            - run: |
+                cd /home/runner/work/ASR-TTS-Data-Collection
+                ls
 
+            - name: provide-artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: provide-artifact
+                path: Dockerfile
+    artifact-consumer:
+        runs-on: ubuntu-22.04
+        needs:
+            artifact-producer
+        steps:
+            - name: get-artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: provide-artifact
+            - name: use-artifact
+              run: |
+                echo "collected the artifact"
+                cat Dockerfile
