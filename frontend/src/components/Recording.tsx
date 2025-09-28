@@ -1,6 +1,26 @@
 import { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
+const getSupportedAudioMimeType = (): { mime: string, ext: string } => {
+  const types = [
+    
+    
+    { mime: 'audio/wav', ext: 'wav' },
+  
+    
+  ];
+
+  for (const type of types) {
+    if (MediaRecorder.isTypeSupported(type.mime)) {
+      return type;
+    }
+  }
+
+  
+  return { mime: 'audio/wav', ext: 'wav' };
+};
+
+
 const BACKEND_URL = 'http://localhost:8000';
 
 type RecordingMap = { [text: string]: string };
@@ -144,14 +164,15 @@ function Recording() {
         
         setIsUploading(true);
         try {
-          const blob = new Blob(chunks.current, { type: 'audio/wav' });
+          const { mime, ext } = getSupportedAudioMimeType();
+          const blob = new Blob(chunks.current, { type: mime });
           const url = URL.createObjectURL(blob);
           setAudioUrl(url);
           
           // Upload to backend
           const formData = new FormData();
           formData.append('text', prompts[currentIdx]);
-          formData.append('audio', new File([blob], 'audio.wav'));
+          formData.append('audio', new File([blob], `audio.${ext}`));
           formData.append('project_id', project.id.toString());
           
           const response = await fetch(`${BACKEND_URL}/upload_audio/`, {
