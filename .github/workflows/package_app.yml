@@ -1,0 +1,13 @@
+name: Create Distributable
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - release/*
+
+jobs:
+    checkout:
+        runs-on: ubuntu-latest
+        steps:
+            - name: checkout repo content
+              uses: actions/checkout@v5
