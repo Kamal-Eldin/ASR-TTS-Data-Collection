@@ -1,13 +1,13 @@
 name: first action
 "on":
-    push:
-        branches:
-            - "release/*"
+    # push:
+    #     branches:
+    #         - "release/*"
 
-    pull_request:
-      types:
-        - opened
-        - reopened
+    # pull_request:
+    #   types:
+    #     - opened
+    #     - reopened
 
     workflow_dispatch:
 

@@ -27,7 +27,7 @@ Name: "main"; Description: "Main program Files"; Types: full compact; Flags: fix
 Name: "docker"; Description: "Docker standalone binaries"; Types: full
 
 [Files]
-Source: "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe"; DestDir: {app}; DestName: docker_windows.exe; ExternalSize: 550_000_000; Flags: external download ignoreversion
+Source: "https://desktop.docker.com/win/main/arm64/Docker%20Desktop%20Installer.exe"; DestDir: {app}; DestName: docker_windows.exe; ExternalSize: 550_000_000; Flags: external download ignoreversion
 
 
 
