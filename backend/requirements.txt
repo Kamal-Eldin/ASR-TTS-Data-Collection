@@ -3,9 +3,11 @@ uvicorn==0.24.0
 python-multipart==0.0.6
 boto3==1.34.0
 huggingface_hub==0.19.4
-datasets==2.15.0
+datasets[audio]==2.15.0
 pandas>=2.2.0
 sqlalchemy==2.0.23
 pymysql==1.1.0
 cryptography==41.0.7
-python-dotenv==1.0.0 
+python-dotenv==1.0.0
+scipy==1.16.2
+pydub==0.25.1

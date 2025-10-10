@@ -28,7 +28,8 @@ WORKDIR /app/backend
 # Install system dependencies needed for pymysql and other libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    curl\
+    curl \
+    ffmpeg \
     default-libmysqlclient-dev \
     && rm -rf /var/lib/apt/lists/*
 

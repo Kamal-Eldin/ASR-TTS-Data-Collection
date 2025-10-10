@@ -15,7 +15,8 @@
 		},
     	"ghcr.io/devcontainers/features/node:1": {
 			"version": "16"
-    	}
+    	},
+		"ghcr.io/devcontainers-extra/features/ffmpeg-apt-get:1":{}
 	},
     "customizations": {
 		"vscode": {
@@ -39,6 +40,7 @@
 	},
     "remoteUser": "root",
     "containerEnv": {
+		"WORKSPACEFOLDER":"${containerWorkspaceFolder}",
 	    "PYTHONPATH":"${containerWorkspaceFolder}/backend"
     },
     "postCreateCommand": "bash /workspaces/Voice-Dataset-Collection/.devcontainer/postCreate.sh"
