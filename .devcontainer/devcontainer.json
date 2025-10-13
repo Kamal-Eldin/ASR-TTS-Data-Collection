@@ -14,7 +14,8 @@
 			"shellautocompletion": true
 		},
     	"ghcr.io/devcontainers/features/node:1": {
-			"version": "16"
+			"version": "22",
+			"nvmVersion": "latest"
     	},
 		"ghcr.io/devcontainers/features/terraform:1": {
 			"version": "latest",
@@ -22,6 +23,7 @@
 			"installTerraformDocs": true,
 			"installTFsec": true
 		},
+		"ghcr.io/devcontainers/features/aws-cli:1":{},
 		"ghcr.io/devcontainers-extra/features/ffmpeg-apt-get:1":{}
 	},
     "customizations": {
