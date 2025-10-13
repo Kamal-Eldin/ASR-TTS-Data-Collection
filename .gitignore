@@ -21,6 +21,7 @@ frontend/node_modules/
 # Build
 frontend/build/
 frontend/dist/
+*lock.json
 
 # OS files
 .DS_Store
@@ -54,4 +55,10 @@ data/
 
 #notebooks
 *.ipynb
+
+#terraform
+*state*
+*.out
+.terraform*
+
 
