@@ -3,9 +3,9 @@ name: "deploy-cloudfront"
     push:
         branches: 
         - "release/*cloudfront*"
-        # paths:
-        #   - ./frontend/*
-        #   - ./.github/workflows/cloudfront.yml
+        paths:
+          - 'frontend/**'
+          - '.github/workflows/cloudfront.yml'
         
 
 jobs:
@@ -25,16 +25,18 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                 name: static_files
-                path: ./frontend/dist
+                path: 'frontend/dist'
 
     upload-to-origin:
+        needs:
+            build-frontend
         runs-on: ubuntu-latest
         steps:
             - name: retrieve artifact
               uses: actions/download-artifact@v4
               with:
                 name: static_files
-                path: ./release/
+                path: release/artifact
             - name: validate artifact
               run: |
                 nlines=$(wc -l < ./release/dist/index.html)
