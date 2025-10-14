@@ -6,6 +6,9 @@ name: "deploy-cloudfront"
         paths:
           - 'frontend/**'
           - '.github/workflows/cloudfront.yml'
+
+env:
+    artifact_dir: release/artifact
         
 
 jobs:
@@ -36,11 +39,11 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                 name: static_files
-                path: release/artifact
+                path: ${{env.artifact_dir}}
             - name: validate artifact
               run: |
-                nlines=$(wc -l < ./release/dist/index.html)
-                if ["$nlines" -gt 1 ]; then
+                nlines=$(wc -l < "${{env.artifact_dir}}/index.html")
+                if [$nlines -gt 1 ]; then
                     echo "Successfully built and read static files!!!"
                 else
                     echo "Failed to read static files artifact"
