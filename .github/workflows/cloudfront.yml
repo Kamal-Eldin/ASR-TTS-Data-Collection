@@ -42,7 +42,7 @@ jobs:
                 path: ${{env.artifact_dir}}
             - name: validate artifact
               run: |
-                nlines=$(wc -l < "${{env.artifact_dir}}/index.html")
+                nlines=$(wc -l < "${{env.artifact_dir}}/dist/index.html")
                 if [$nlines -gt 1 ]; then
                     echo "Successfully built and read static files!!!"
                 else
