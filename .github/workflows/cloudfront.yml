@@ -1,12 +1,11 @@
 name: "deploy-cloudfront"
 "on":
-    workflow_dispatch:
     push:
         branches: 
         - "release/*cloudfront*"
         paths:
-          - frontend/*
-          - cloudfront.yml
+          - ./frontend/*
+          - ./.github/workflows/cloudfront.yml
         
 
 jobs:
