@@ -44,7 +44,8 @@
 				"ms-vscode.makefile-tools",
 				"cweijan.vscode-mysql-client2",
 				"hashicorp.terraform",
-				"amazonwebservices.aws-toolkit-vscode"
+				"amazonwebservices.aws-toolkit-vscode",
+				"github.vscode-github-actions"
 			]
 		}
 	},
