@@ -6,6 +6,8 @@ name: "deploy-cloudfront"
         paths:
           - 'frontend/**'
           - '.github/workflows/cloudfront.yml'
+    workflow_call: 
+    workflow_dispatch:
 
 env:
     artifact_dir: .artifacts
