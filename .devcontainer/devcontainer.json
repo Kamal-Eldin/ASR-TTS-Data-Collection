@@ -24,6 +24,7 @@
 			"installTFsec": true
 		},
 		"ghcr.io/devcontainers/features/aws-cli:1":{},
+		"ghcr.io/dhoeric/features/act:1": {},
 		"ghcr.io/devcontainers-extra/features/ffmpeg-apt-get:1":{}
 	},
     "customizations": {
