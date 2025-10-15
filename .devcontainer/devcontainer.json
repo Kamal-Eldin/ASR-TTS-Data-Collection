@@ -14,8 +14,17 @@
 			"shellautocompletion": true
 		},
     	"ghcr.io/devcontainers/features/node:1": {
-			"version": "16"
+			"version": "22",
+			"nvmVersion": "latest"
     	},
+		"ghcr.io/devcontainers/features/terraform:1": {
+			"version": "latest",
+			"tflint": "latest",
+			"installTerraformDocs": true,
+			"installTFsec": true
+		},
+		"ghcr.io/devcontainers/features/aws-cli:1":{},
+		"ghcr.io/dhoeric/features/act:1": {},
 		"ghcr.io/devcontainers-extra/features/ffmpeg-apt-get:1":{}
 	},
     "customizations": {
@@ -34,7 +43,10 @@
 				"mutantdino.resourcemonitor",
 				"streetsidesoftware.code-spell-checker",
 				"ms-vscode.makefile-tools",
-				"cweijan.vscode-mysql-client2"
+				"cweijan.vscode-mysql-client2",
+				"hashicorp.terraform",
+				"amazonwebservices.aws-toolkit-vscode",
+				"github.vscode-github-actions"
 			]
 		}
 	},

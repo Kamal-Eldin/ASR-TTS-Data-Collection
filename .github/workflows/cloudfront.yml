@@ -1,0 +1,79 @@
+name: "deploy-cloudfront"
+"on":
+    push:
+        branches: 
+        - "release/*cloudfront*"
+        paths:
+          - 'frontend/**'
+          - '.github/workflows/cloudfront.yml'
+    workflow_call: 
+    workflow_dispatch:
+
+env:
+    artifact_dir: .artifacts
+    bucket: s3://speech-collector-s3
+        
+
+jobs:
+    build-frontend:
+        runs-on: ubuntu-latest
+        steps:
+            - name: checkout repo
+              uses: actions/checkout@v5
+
+            - name: build frontend static files
+              run: |
+                cd ./frontend
+                npm install
+                npm run build
+
+            - name: archive static files
+              uses: actions/upload-artifact@v4
+              with:
+                name: static_files
+                path: 'frontend/dist'
+
+    upload-to-origin:
+        needs:
+            build-frontend
+        runs-on: ubuntu-latest
+        steps:
+            - name: retrieve artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: static_files
+                path: ${{env.artifact_dir}}
+
+            - name: validate artifact
+              run: |
+                set +x
+                echo "-----------------------------------------"
+                echo "Validating frontend distribution artifact:"
+                echo "1. Listing items in the distribution directory:"
+                ls ${{env.artifact_dir}}
+                echo "-----------------------------------------"
+                nlines=$(wc -l < "${{env.artifact_dir}}/index.html")
+                echo "Found $nlines lines in index.html..."
+                echo "-----------------------------------------"
+                if [[ $nlines > 1 ]]; then
+                  echo "Successfully built and read static files!!!"
+                else
+                  echo "Failed to read static files artifact"
+                fi
+                echo "-----------------------------------------"
+
+            - name: Authenticate AWS Creds
+              uses: aws-actions/configure-aws-credentials@main
+              with:
+                aws-region: "eu-central-1"
+                aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+                aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+            
+            - name: upload static files to origin
+              run: |
+                set +x
+                echo "Syncing static files from artifact to aws s3"
+                aws s3 sync "${{env.artifact_dir}}" "${{env.bucket}}" --delete
+                
+  
+
