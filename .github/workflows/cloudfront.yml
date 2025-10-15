@@ -9,6 +9,7 @@ name: "deploy-cloudfront"
 
 env:
     artifact_dir: .artifacts
+    bucket: s3://speech-collector-s3
         
 
 jobs:
@@ -40,6 +41,7 @@ jobs:
               with:
                 name: static_files
                 path: ${{env.artifact_dir}}
+
             - name: validate artifact
               run: |
                 set +x
@@ -57,4 +59,19 @@ jobs:
                   echo "Failed to read static files artifact"
                 fi
                 echo "-----------------------------------------"
+
+            - name: Authenticate AWS Creds
+              uses: aws-actions/configure-aws-credentials@main
+              with:
+                aws-region: "eu-central-1"
+                aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+                aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+            
+            - name: upload static files to origin
+              run: |
+                set +x
+                echo "Syncing static files from artifact to aws s3"
+                aws s3 sync "${{env.artifact_dir}}" s3://speech-collector-s3 --delete
+                
+  
 
