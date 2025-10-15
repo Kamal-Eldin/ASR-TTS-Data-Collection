@@ -34,6 +34,7 @@ recordings/
 *.ogg
 *.jsonl
 Output/
+.artifacts/
 
 # Logs
 *.log
@@ -60,5 +61,8 @@ data/
 *state*
 *.out
 .terraform*
+
+#WARP
+WARP.md
 
 
