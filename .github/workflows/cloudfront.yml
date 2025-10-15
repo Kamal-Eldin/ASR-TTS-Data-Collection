@@ -73,7 +73,7 @@ jobs:
               run: |
                 set +x
                 echo "Syncing static files from artifact to aws s3"
-                aws s3 sync "${{env.artifact_dir}}" s3://speech-collector-s3 --delete
+                aws s3 sync "${{env.artifact_dir}}" "${{env.bucket}}" --delete
                 
   
 
