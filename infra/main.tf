@@ -17,10 +17,11 @@ resource "aws_s3_bucket" "data-app-s3" {
 }
 
 resource "aws_cloudfront_distribution" "data-app-front" {
+    aliases = [  ]
     origin {
       domain_name = aws_s3_bucket.data-app-s3.bucket_domain_name
       origin_id = local.origin_id
-      origin_access_control_id = aws_cloudfront_origin_access_control.data-app_oac.id
+      origin_access_control_id = aws_cloudfront_origin_access_control.data-app-oac.id
     }
     default_root_object = "index.html"
     price_class = "PriceClass_200"
@@ -68,7 +69,7 @@ resource "aws_s3_bucket_policy" "bucket-policy" {
   policy= data.aws_iam_policy_document.bucket-policy-body.json
 }
 
-resource "aws_cloudfront_origin_access_control" "data-app_oac" {
+resource "aws_cloudfront_origin_access_control" "data-app-oac" {
     name = "${var.application_name}-oac"
     origin_access_control_origin_type = "s3"
     signing_behavior = "always"
