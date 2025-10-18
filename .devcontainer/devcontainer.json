@@ -46,7 +46,8 @@
 				"cweijan.vscode-mysql-client2",
 				"hashicorp.terraform",
 				"amazonwebservices.aws-toolkit-vscode",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"donjayamanne.githistory"
 			]
 		}
 	},
@@ -55,6 +56,11 @@
 		"WORKSPACEFOLDER":"${containerWorkspaceFolder}",
 	    "PYTHONPATH":"${containerWorkspaceFolder}/backend"
     },
+	"mounts": [
+				{"source": "${localEnv:HOME}/.aws",
+				"target": "/root/.aws",
+				"type": "bind"}
+			],
     "postCreateCommand": "bash /workspaces/Voice-Dataset-Collection/.devcontainer/postCreate.sh"
 
 }
