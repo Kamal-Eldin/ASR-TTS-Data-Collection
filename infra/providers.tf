@@ -12,3 +12,12 @@ provider "aws" {
     region = "eu-central-1"
 
 }
+
+terraform {
+  backend "s3" {
+    bucket = "feth-s3"
+    key = "terraform/speech-collector-state.tfstate"
+    profile = "Feth-IAM"
+    region = "eu-central-1"
+  }
+}
