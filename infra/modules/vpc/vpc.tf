@@ -1,0 +1,86 @@
+resource "aws_vpc" "data-app-vpc" {
+    region = var.region
+    enable_dns_hostnames = true
+    cidr_block = "10.1.0.0/16" # [ 10.1.0.0 - 10.1.255.255 ]
+    
+    tags = {
+      "Name" = "${var.application_name}-vpc"
+      "Project"= var.project_name
+      "Function"= "Isolates the data app backend deployment resources"
+    }
+}
+
+resource "aws_subnet" "data-app-subnet-1" {
+    vpc_id = aws_vpc.data-app-vpc.id
+    region = var.region
+    availability_zone = "${var.region}a"
+    cidr_block = "10.1.0.0/20" # [10.1.0.0 - 10.1.15.255 ]
+    map_public_ip_on_launch = true
+  
+}
+resource "aws_subnet" "data-app-subnet-2" {
+    vpc_id = aws_vpc.data-app-vpc.id
+    region = var.region
+    availability_zone = "${var.region}b"
+    cidr_block = "10.1.16.0/20" # [10.1.16.0 - 10.1.31.255]
+    map_public_ip_on_launch = true
+  
+}
+
+resource "aws_security_group" "alb-secgrp" {
+    name= "${var.application_name}-alb-secgrp"
+    vpc_id = aws_vpc.data-app-vpc.id
+    region = var.region
+    depends_on = [ aws_vpc.data-app-vpc ]
+
+}
+
+resource "aws_vpc_security_group_ingress_rule" "backend-inbound" {
+    cidr_ipv4 = aws_vpc.data-app-vpc.cidr_block
+    ip_protocol = "HTTP"
+    to_port = var.backend_port # backend pre-configured port. embedded in frontend calls.
+    from_port = var.backend_port
+    security_group_id = aws_security_group.alb-secgrp.id
+    depends_on = [ aws_security_group.alb-secgrp, aws_vpc.data-app-vpc ]
+}
+
+resource "aws_vpc_security_group_egress_rule" "backend-outbound" {
+    cidr_ipv4 = "0.0.0.0/0"
+    ip_protocol = "HTTP"
+    to_port = 0
+    from_port = 0
+    security_group_id = aws_security_group.alb-secgrp.id
+    depends_on = [ aws_security_group.alb-secgrp, aws_vpc.data-app-vpc ]
+}
+
+resource "aws_internet_gateway" "data-app-igw" {    
+    vpc_id = aws_vpc.data-app-vpc.id
+    region = var.region
+    depends_on = [ aws_vpc.data-app-vpc ]
+
+}
+
+resource "aws_route_table" "data-app-route-table" {
+    region = var.region
+    vpc_id = aws_vpc.data-app-vpc.id
+    depends_on = [ aws_vpc.data-app-vpc, aws_internet_gateway.data-app-igw ]
+}
+
+# local routes are created implicitly 
+resource "aws_route" "data-app-internet-route" {
+    region = var.region
+    destination_cidr_block = "0.0.0.0/0" # allow all outbound connections
+    gateway_id = aws_internet_gateway.data-app-igw.id
+    route_table_id = aws_route_table.data-app-route-table.id
+    depends_on = [ aws_route_table.data-app-route-table ]
+}
+
+resource "aws_route_table_association" "data-app-rt-subnet-1" {
+    route_table_id = aws_route_table.data-app-route-table.id
+    subnet_id = aws_subnet.data-app-subnet-1.id
+}
+
+resource "aws_route_table_association" "data-app-rt-subnet-2" {
+    route_table_id = aws_route_table.data-app-route-table.id
+    subnet_id = aws_subnet.data-app-subnet-2.id
+}

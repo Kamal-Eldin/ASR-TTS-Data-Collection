@@ -16,3 +16,8 @@ variable "aws_profile" {
     description = "aws profile to use for the provider and terraform remote state management."
   
 }
+
+variable "project_name" {
+    type = string
+    default= "Feth"
+}
