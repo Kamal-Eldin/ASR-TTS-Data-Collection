@@ -8,6 +8,8 @@ module "fargate" {
   aws_profile = module.cloudfront.aws_profile
   application_name = module.cloudfront.application_name
   project_name = module.cloudfront.project_name
+  bucket_name = module.cloudfront.bucket_name
+  alb_arn = module.alb.alb_arn
 }
 
 module "vpc" {
@@ -18,3 +20,15 @@ module "vpc" {
   project_name = module.cloudfront.project_name
   backend_port = module.fargate.backend_port
   }
+
+module "alb" {
+  source = "./modules/alb"
+  vpc_id= module.vpc.vpc_id
+  secgrp_id = module.vpc.secgrp_id
+  region = module.cloudfront.region
+  aws_profile = module.cloudfront.aws_profile
+  application_name = module.cloudfront.application_name
+  project_name = module.cloudfront.project_name
+  backend_port = module.fargate.backend_port
+  subnets_ids = module.vpc.subnets_ids
+}
