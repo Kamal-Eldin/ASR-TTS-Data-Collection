@@ -1,3 +1,9 @@
+variable "container_name" {
+    type = string
+    default = "speech-collector-backend"
+    description = "backend container name for the ecs service"
+}
+
 variable "aws_profile" {
     type = string
   
@@ -18,7 +24,39 @@ variable "project_name" {
 
 variable "backend_port" {
     type = number
-    default = 8500
+    default = 80
     description = "the backend port for ingress frontend calls"
   
+}
+
+variable "bucket_name" {
+    type= string
+}
+
+variable "alb_tgrp_arn" {
+    type = string
+}
+variable "image_registery" {
+    type= string
+    default = "436399611457.dkr.ecr.eu-central-1.amazonaws.com"
+}
+variable "backend_image" {
+    type = string
+    default = "asr-tts-curator"
+    description = "the container image for the backend app"
+}
+
+variable "backend_image_tag" {
+    type = number
+    default = 0.1
+    description = "image tag for the backend container"
+}
+
+variable "secgrp_id" {
+    type = string
+  
+}
+
+variable "subnets_ids" {
+    type = list(string)
 }
