@@ -11,7 +11,8 @@ module "fargate" {
   application_name = module.cloudfront.application_name
   project_name     = module.cloudfront.project_name
   bucket_name      = module.cloudfront.bucket_name
-  alb_tgrp_arn     = module.alb.alb_tgrp_arn
+  alb_tgrp_web_arn = module.alb.alb_tgrp_web_arn
+  alb_tgrp_api_arn = module.alb.alb_tgrp_api_arn
 }
 
 module "vpc" {

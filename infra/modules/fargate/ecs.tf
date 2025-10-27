@@ -6,9 +6,9 @@ resource "aws_ecs_cluster" "data-app-ecs-cluster" {
       execute_command_configuration {
         logging = "OVERRIDE"
         log_configuration {
-          cloud_watch_log_group_name = aws_cloudwatch_log_group.data-app-ecs-watch-grp.name
-          s3_bucket_name = var.bucket_name
-          s3_key_prefix = "./ecs_logs"
+            cloud_watch_log_group_name = aws_cloudwatch_log_group.data-app-ecs-watch-grp.name
+            s3_bucket_name = var.bucket_name
+            s3_key_prefix = "./ecs_logs"
         }
       }
     }
@@ -24,9 +24,14 @@ resource "aws_ecs_service" "data-app-ecs-service" {
     launch_type = "FARGATE"
     desired_count = 1
     load_balancer {
-      target_group_arn = var.alb_tgrp_arn
-      container_name = var.container_name
-      container_port = var.backend_port
+        target_group_arn = var.alb_tgrp_web_arn
+        container_name = var.container_name
+        container_port = 80
+    }
+    load_balancer {
+        target_group_arn = var.alb_tgrp_api_arn
+        container_name = var.container_name
+        container_port = var.backend_port
     }
     network_configuration {
         security_groups = [ var.secgrp_id ]
@@ -51,7 +56,6 @@ resource "aws_ecs_task_definition" "data-app-ecs-task" {
     container_definitions =jsonencode(local.container_defs)
     depends_on = [ aws_ecs_cluster.data-app-ecs-cluster ]
 
-
 }
 
 locals {
@@ -59,32 +63,47 @@ locals {
         {
             name= var.container_name
             # image= "${var.image_registery}/${var.backend_image}:${var.backend_image_tag}"
-            image= "nginxdemos/hello:0.4"
+            image= "public.ecr.aws/nginx/nginx:trixie-perl"
             portMappings= [
                 {
                     containerPort= var.backend_port
                     protocol= "TCP"
                     hostPort=var.backend_port
 
-
+                },
+                {
+                    containerPort= 80
+                    protocol= "TCP"
+                    hostPort=80
                 }
+            ],
+            logConfiguration= {
+                logDriver="awslogs"
+                options= {
+                    awslogs-region=var.region
+                    awslogs-group=aws_cloudwatch_log_group.data-app-ecs-watch-grp.name
+                    awslogs-stream-prefix="feth" # resolves to prefix-name/container-name/ecs-task-id -> feth/speech-collector-backend/<task-id>
+                    # aws-logs-datetime-format="[%b %d, %Y %I:%M:%S %p]" # disallowed by aws
+                    mode="non-blocking"
+                    max-buffer-size="25m" 
+                }
+            }
+            restartPolicy = {
+                    enabled= true
+                    restartAttemptPeriod= 120
+                }
+            environment = [
+                {name= "HUGGINGFACE_TOKEN_FILE", value= "simple_code"},
+                {name= "AWS_ACCESS_KEY_ID_FILE", value= "simple_code"},
+                {name= "AWS_SECRET_ACCESS_KEY_FILE", value= "simple_code"},
+                {name= "MYSQL_PASSWORD_FILE", value= "simple_code"}
             ]
-            # restartPolicy = {
-            #         enabled= true
-            #         restartAttemptPeriod= 120
-            #     }
-            # environment = [
-            #     {name= "HUGGINGFACE_TOKEN_FILE", value= "simple_code"},
-            #     {name= "AWS_ACCESS_KEY_ID_FILE", value= "simple_code"},
-            #     {name= "AWS_SECRET_ACCESS_KEY_FILE", value= "simple_code"},
-            #     {name= "MYSQL_PASSWORD_FILE", value= "simple_code"}
-            # ]
-            # secrets= [
-            #     {name= "hf_token", valuefrom= "simple_code"},
-            #     {name= "aws_access_id", valuefrom= "simple_code"},
-            #     {name= "aws_access_secret", valuefrom= "simple_code"},
-            #     {name= "db_password", valuefrom= "simple_code"},
-            # ]
+            secrets= [
+                {name= "hf_token", valuefrom= "simple_code"},
+                {name= "aws_access_id", valuefrom= "simple_code"},
+                {name= "aws_access_secret", valuefrom= "simple_code"},
+                {name= "db_password", valuefrom= "simple_code"},
+            ]
             
         }
     ]
