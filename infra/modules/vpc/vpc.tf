@@ -35,12 +35,22 @@ resource "aws_security_group" "alb-secgrp" {
 
 }
 
-resource "aws_vpc_security_group_ingress_rule" "backend-inbound" {
+resource "aws_vpc_security_group_ingress_rule" "backend-inbound-web" {
     # cidr_ipv4 = aws_vpc.data-app-vpc.cidr_block
     cidr_ipv4 = "0.0.0.0/0"
     ip_protocol = "tcp"
     to_port = 80 # backend pre-configured port. embedded in frontend calls.
     from_port = 80
+    security_group_id = aws_security_group.alb-secgrp.id
+    depends_on = [ aws_security_group.alb-secgrp, aws_vpc.data-app-vpc ]
+}
+
+resource "aws_vpc_security_group_ingress_rule" "backend-inbound-api" {
+    # cidr_ipv4 = aws_vpc.data-app-vpc.cidr_block
+    cidr_ipv4 = "0.0.0.0/0"
+    ip_protocol = "tcp"
+    to_port = var.backend_port # backend pre-configured port. embedded in frontend calls.
+    from_port = var.backend_port
     security_group_id = aws_security_group.alb-secgrp.id
     depends_on = [ aws_security_group.alb-secgrp, aws_vpc.data-app-vpc ]
 }

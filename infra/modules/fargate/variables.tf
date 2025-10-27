@@ -24,7 +24,7 @@ variable "project_name" {
 
 variable "backend_port" {
     type = number
-    default = 80
+    default = 8500
     description = "the backend port for ingress frontend calls"
   
 }
@@ -33,7 +33,10 @@ variable "bucket_name" {
     type= string
 }
 
-variable "alb_tgrp_arn" {
+variable "alb_tgrp_web_arn" {
+    type = string
+}
+variable "alb_tgrp_api_arn" {
     type = string
 }
 variable "image_registery" {
@@ -42,7 +45,7 @@ variable "image_registery" {
 }
 variable "backend_image" {
     type = string
-    default = "asr-tts-curator"
+    default = "speech-collector"
     description = "the container image for the backend app"
 }
 
