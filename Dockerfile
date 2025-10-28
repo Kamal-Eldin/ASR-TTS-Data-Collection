@@ -7,6 +7,7 @@ LABEL description='''The voice and text data annotation platform. \
                     speech to text targets for ASR applications.'''
 
 ARG APP_PORT
+ENV APP_PORT=${APP_PORT}
 
 WORKDIR /app
 
@@ -50,4 +51,4 @@ RUN mkdir -p /app/backend/data/recordings && chmod -R 777 /app/backend/data
 EXPOSE ${APP_PORT}
 
 # Start Uvicorn server
-CMD uvicorn main:app --host 0.0.0.0 --port $APP_PORT
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $APP_PORT"]

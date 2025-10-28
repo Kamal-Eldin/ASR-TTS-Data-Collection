@@ -13,6 +13,7 @@ class DatabaseConfig:
     MYSQL_PORT = int(os.getenv('MYSQL_PORT', 3306))
     MYSQL_USER = os.getenv('MYSQL_USER', 'root')
     MYSQL_PASSWORD_FILE = os.getenv('MYSQL_PASSWORD_FILE', '')
+    MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', '')
     MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'tts_dataset_generator')
     
     # SQLite Configuration (default)
@@ -21,9 +22,17 @@ class DatabaseConfig:
     @classmethod
     def get_db_password(cls):
         valid_filepath = os.path.exists(cls.MYSQL_PASSWORD_FILE)
-        assert valid_filepath, f"MYSQL_PASSWORD_FILE cannot be found neither at {cls.MYSQL_PASSWORD_FILE} nor defaults"
-        with open(cls.MYSQL_PASSWORD_FILE, 'r') as file:
-            return file.read() 
+        try:
+            assert valid_filepath, f"MYSQL_PASSWORD_FILE cannot be found neither at {cls.MYSQL_PASSWORD_FILE} nor defaults"
+            with open(cls.MYSQL_PASSWORD_FILE, 'r') as file:
+                return file.read() 
+        except Exception:
+            try:
+                assert cls.MYSQL_PASSWORD, f"MYSQL_PASSWORD not set.."
+                return cls.MYSQL_PASSWORD
+            except AssertionError:
+                print("failed to find user set MYSQL_PASSWORD, resorting to default value 'admin'")
+                return os.getenv("MYSQL_PASSWORD", 'admin')
          
     @classmethod
     def get_database_url(cls):
