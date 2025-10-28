@@ -54,7 +54,7 @@ resource "aws_ecs_task_definition" "data-app-ecs-task" {
     memory = "8192"
     network_mode = "awsvpc"  # required for containers on ecs FARGATE
     container_definitions =jsonencode(local.container_defs)
-    depends_on = [ aws_ecs_cluster.data-app-ecs-cluster ]
+    depends_on = [ aws_ecs_cluster.data-app-ecs-cluster]
 
 }
 
@@ -62,8 +62,9 @@ locals {
     container_defs= [
         {
             name= var.container_name
-            # image= "${var.image_registery}/${var.backend_image}:${var.backend_image_tag}"
-            image= "public.ecr.aws/nginx/nginx:trixie-perl"
+            image= "${var.image_registery}/${var.backend_image}:${var.backend_image_tag}"
+            # image= "public.ecr.aws/nginx/nginx:trixie-perl"
+            cpu: 2048
             portMappings= [
                 {
                     containerPort= var.backend_port
@@ -90,25 +91,29 @@ locals {
             }
             restartPolicy = {
                     enabled= true
-                    restartAttemptPeriod= 120
+                    restartAttemptPeriod= 60 # minimum [60-1800] secs
                 }
             environment = [
-                {name= "HUGGINGFACE_TOKEN_FILE", value= "simple_code"},
-                {name= "AWS_ACCESS_KEY_ID_FILE", value= "simple_code"},
-                {name= "AWS_SECRET_ACCESS_KEY_FILE", value= "simple_code"},
-                {name= "MYSQL_PASSWORD_FILE", value= "simple_code"}
+                {name="APP_PORT", value=tostring(var.backend_port)},
+                {name= "MYSQL_PASSWORD_FILE", value= ""},
+                {name= "HUGGINGFACE_TOKEN_FILE", value= ""},
+                {name= "AWS_ACCESS_KEY_ID_FILE", value= ""},
+                {name= "MYSQL_ROOT_PASSWORD_FILE", value= ""},
+                {name= "AWS_SECRET_ACCESS_KEY_FILE",value= ""},
+                {name= "HUGGINGFACE_REPO", value="feth-data-force"}
             ]
             secrets= [
-                {name= "hf_token", valuefrom= "simple_code"},
-                {name= "aws_access_id", valuefrom= "simple_code"},
-                {name= "aws_access_secret", valuefrom= "simple_code"},
-                {name= "db_password", valuefrom= "simple_code"},
+                {name= "hf_token", valuefrom= data.aws_ssm_parameter.data-app-hf-token.arn},
+                {name= "db_password", valuefrom= data.aws_ssm_parameter.data-app-db-pass.arn},
+                # {name= "aws_access_id", valuefrom= "simple_code"},
+                # {name= "aws_access_secret", valuefrom= "simple_code"}
             ]
+            workingDirectory= "/app/backend"
+            command= ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8500"]
             
         }
     ]
 }
-
 
 
 resource "aws_cloudwatch_log_group" "data-app-ecs-watch-grp" {
@@ -120,6 +125,9 @@ resource "aws_cloudwatch_log_group" "data-app-ecs-watch-grp" {
 
 data "aws_iam_policy" "ecs-task-exec-policy" {
     name = "AmazonECSTaskExecutionRolePolicy"
+}
+data "aws_iam_policy" "ecs-ssm-read-policy" {
+    name = "AmazonSSMReadOnlyAccess"
 }
 
 resource "aws_iam_role" "data-app-ecs-role" {
@@ -140,6 +148,11 @@ resource "aws_iam_role" "data-app-ecs-role" {
 
 resource "aws_iam_role_policy_attachment" "data-app-ecs-role-attachment" {
     policy_arn = data.aws_iam_policy.ecs-task-exec-policy.arn
+    role = aws_iam_role.data-app-ecs-role.name
+  
+}
+resource "aws_iam_role_policy_attachment" "data-app-ecs-ssm-attachment" {
+    policy_arn = data.aws_iam_policy.ecs-ssm-read-policy.arn
     role = aws_iam_role.data-app-ecs-role.name
   
 }

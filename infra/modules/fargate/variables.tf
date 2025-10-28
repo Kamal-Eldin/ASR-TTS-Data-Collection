@@ -63,3 +63,51 @@ variable "secgrp_id" {
 variable "subnets_ids" {
     type = list(string)
 }
+
+variable "db_pass_file" {
+    type = string
+    sensitive = true
+    default = "/run/secrets/db_password"
+    description = "path to secret file within docker"
+}
+
+variable "db_root_pass_file" {
+    type = string
+    sensitive = true
+    default = "/run/secrets/db_root_password"
+    description = "path to secret file within docker"
+}
+variable "aws_access_id_file" {
+    type = string
+    sensitive = true
+    default = "/run/secrets/aws_access_id"
+    description = "path to secret file within docker"
+}
+variable "aws_secret_file" {
+    type = string
+    sensitive = true
+    default = "/run/secrets/aws_access_secret"
+    description = "path to secret file within docker"
+}
+variable "hf_token_file" {
+    type = string
+    sensitive = true
+    default = "/run/secrets/hf_token"
+    description = "path to secret file within docker"
+}
+variable "hf_repo" {
+    type = string
+    sensitive = false
+    default = "feth-data-force"
+    description = "hugging face remote data export repo"
+}
+
+# variable "ssm-db-root-pass-arn" {
+#     type = string
+# }
+# variable "ssm-db-pass-arn" {
+#     type = string
+# }
+# variable "ssm-hf-token-arn" {
+#     type = string
+# }
