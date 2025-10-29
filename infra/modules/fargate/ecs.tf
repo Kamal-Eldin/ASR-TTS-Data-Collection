@@ -108,8 +108,16 @@ locals {
                 # {name= "aws_access_id", valuefrom= "simple_code"},
                 # {name= "aws_access_secret", valuefrom= "simple_code"}
             ]
+            healthCheck={
+                command= ["CMD-SHELL", "curl -f http://localhost:8500/health || exit 1"]
+                interval = 10
+                timeout= 30
+                retries= 3
+                startPeriod=120
+            }
             workingDirectory= "/app/backend"
             command= ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8500"]
+
             
         }
     ]
