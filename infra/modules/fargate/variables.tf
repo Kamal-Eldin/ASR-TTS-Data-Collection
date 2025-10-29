@@ -50,8 +50,8 @@ variable "backend_image" {
 }
 
 variable "backend_image_tag" {
-    type = number
-    default = 0.1
+    type = string
+    default = "linux"
     description = "image tag for the backend container"
 }
 

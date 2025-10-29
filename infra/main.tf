@@ -13,10 +13,7 @@ module "fargate" {
   bucket_name      = module.cloudfront.bucket_name
   alb_tgrp_web_arn = module.alb.alb_tgrp_web_arn
   alb_tgrp_api_arn = module.alb.alb_tgrp_api_arn
-  # ssm-db-pass-arn = module.ssm.data-app-db-pass-arn
-  # ssm-db-root-pass-arn = module.ssm.data-app-db-root-pass-arn
-  # ssm-hf-token-arn =  module.ssm.data-app-hf-token-arn
-  # depends_on = [ module.ssm ]
+  depends_on = [ module.ssm ]
 } 
 
 module "vpc" {
@@ -46,5 +43,4 @@ module "ssm" {
   aws_profile      = module.cloudfront.aws_profile
   application_name = module.cloudfront.application_name
   project_name     = module.cloudfront.project_name
-  backend_port     = module.fargate.backend_port
 }
