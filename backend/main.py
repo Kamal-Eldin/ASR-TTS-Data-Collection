@@ -43,7 +43,14 @@ app.include_router(recordings_router)
 app.include_router(settings_router)
 app.include_router(exports_router)
 
+# Health check endpoint (must be before static mount)
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+
 
 if __name__ == "__main__":
     import uvicorn
