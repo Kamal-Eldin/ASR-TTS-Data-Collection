@@ -15,6 +15,8 @@ class DatabaseConfig:
     MYSQL_PASSWORD_FILE = os.getenv('MYSQL_PASSWORD_FILE', '')
     MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', '')
     MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'tts_dataset_generator')
+    AWS_ACCESS_KEY_ID_FILE= os.getenv('AWS_ACCESS_KEY_ID_FILE', '')
+    AWS_SECRET_ACCESS_KEY_FILE= os.getenv('AWS_SECRET_ACCESS_KEY_FILE', '')
     
     # SQLite Configuration (default)
     SQLITE_DATABASE = os.getenv('SQLITE_DATABASE', 'data/tts_dataset.db')
@@ -26,11 +28,11 @@ class DatabaseConfig:
             assert valid_filepath, f"MYSQL_PASSWORD_FILE cannot be found neither at {cls.MYSQL_PASSWORD_FILE} nor defaults"
             with open(cls.MYSQL_PASSWORD_FILE, 'r') as file:
                 return file.read() 
-        except Exception:
+        except:
             try:
                 assert cls.MYSQL_PASSWORD, f"MYSQL_PASSWORD not set.."
                 return cls.MYSQL_PASSWORD
-            except AssertionError:
+            except:
                 print("failed to find user set MYSQL_PASSWORD, resorting to default value 'admin'")
                 return os.getenv("MYSQL_PASSWORD", 'admin')
          
