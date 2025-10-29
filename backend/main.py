@@ -1,13 +1,7 @@
-import os
-import sys
-
-# Add the current directory to Python path to ensure imports work
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+import os
 
 from config import AppConfig
 from models.database import Base
@@ -43,8 +37,16 @@ app.include_router(recordings_router)
 app.include_router(settings_router)
 app.include_router(exports_router)
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Root endpoint
+@app.get("/")
+def read_root():
+    return {"message": "TTS Dataset Generator API", "version": "1.0.0"}
+
+# Health check endpoint
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
