@@ -337,64 +337,93 @@ function Recording() {
     }
   }, [currentIdx, recordings, existingRecordings, prompts]);
 
-  const exportWithProgress = async (type: 's3' | 'hf') => {
-    if (!project) return alert('No project selected');
-    setExporting(type);
-    setExportProgress(0);
-    setExportLog([]);
-    setExportError(null);
-    
+const exportWithProgress = async (type: 's3' | 'hf') => {
+  if (!project) return alert('No project selected');
+
+  setExporting(type);
+  setExportProgress(0);
+  setExportLog([]);
+  setExportError(null);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 300000);
+
+  try {
+    //  Export to Hugging Face
     if (type === 'hf') {
-      try {
-        setExportLog(log => [...log, 'Starting Hugging Face export...']);
-        setExportProgress(10);
-        
-        const formData = new FormData();
-        formData.append('project_id', project.id.toString());
-        
-        // Set a timeout for the request
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
-        
-        const res = await fetch(`${BACKEND_URL}/export_hf/`, {
-          method: 'POST',
-          body: formData,
-          signal: controller.signal,
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (data.status === 'ok') {
-            setExportProgress(100);
-            setExportLog(log => [...log, `Successfully exported to Hugging Face: ${data.dataset_name}`]);
-            setExportLog(log => [...log, `Dataset URL: https://huggingface.co/datasets/${data.dataset_name}`]);
-          } else {
-            setExportLog(log => [...log, `Error: ${data.detail}`]);
-            setExportError(data.detail);
-          }
-        } else {
-          const errorData = await res.json();
-          setExportLog(log => [...log, `HTTP Error: ${errorData.detail || 'Unknown error'}`]);
-          setExportError(errorData.detail || 'Unknown error');
-        }
-      } catch (e: any) {
-        if (e.name === 'AbortError') {
-          setExportLog(log => [...log, 'Export timed out after 5 minutes']);
-          setExportError('Export timed out. Please check your internet connection and try again.');
-        } else {
-          setExportLog(log => [...log, `Error: ${e.message}`]);
-          setExportError(e.message);
-        }
+      setExportLog(log => [...log, 'Starting Hugging Face export...']);
+      setExportProgress(10);
+      const formData = new FormData();
+      formData.append('project_id', project.id.toString());
+
+      const res = await fetch(`${BACKEND_URL}/export_hf/`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal, 
+      });
+
+      clearTimeout(timeoutId); 
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.detail || 'Unknown error');
+
+      if (data.status === 'ok') {
+        setExportProgress(100);
+        setExportLog(log => [
+          ...log,
+          `Successfully exported to Hugging Face: ${data.dataset_name}`,
+          `Dataset URL: https://huggingface.co/datasets/${data.dataset_name}`,
+        ]);
+      } else {
+        throw new Error(data.detail);
       }
     }
+
+    // Export to S3
+    else if (type === 's3') {
+      setExportLog(log => [...log, 'Starting Amazon S3 export...']);
+      setExportProgress(10);
+      const payload = { project_id: project.id };
+
+      const res = await fetch(`${BACKEND_URL}/export_s3/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.detail || 'Unknown error');
+
+      if (data.status === 'ok') {
+        setExportProgress(100);
+        setExportLog(log => [
+          ...log,
+          `Successfully exported to Amazon S3: ${data.file_name}`,
+          `File URL: ${data.file_url}`,
+        ]);
+      } else {
+        throw new Error(data.detail);
+      }
+    }
+  } catch (e: any) {
     
-    // Keep modal open for a few seconds to show results
-    setTimeout(() => {
-      setExporting(null);
-    }, 3000);
-  };
+    if (e.name === 'AbortError') {
+      setExportLog(log => [...log, 'Export timed out after 5 minutes']);
+      setExportError('Export timed out. Please check your internet connection and try again.');
+    } else {
+      setExportLog(log => [...log, `Error: ${e.message}`]);
+      setExportError(e.message);
+    }
+  } finally {
+    clearTimeout(timeoutId);
+
+    setTimeout(() => setExporting(null), 3000);
+  }
+};
+
 
   if (!project) {
     return (
