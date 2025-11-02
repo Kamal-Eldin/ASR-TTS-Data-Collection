@@ -20,3 +20,12 @@ variable "backend_port" {
     type = number
   
 }
+
+variable "db_port" {
+    type = number
+}
+
+variable "db_name" {
+    type = string
+}
+

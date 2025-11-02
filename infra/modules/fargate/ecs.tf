@@ -1,4 +1,4 @@
-resource "aws_ecs_cluster" "data-app-ecs-cluster" {
+resource "aws_ecs_cluster" "collector-ecs-cluster" {
     name = "${var.application_name}-ecs-cluster"
     region = var.region
     
@@ -6,7 +6,7 @@ resource "aws_ecs_cluster" "data-app-ecs-cluster" {
       execute_command_configuration {
         logging = "OVERRIDE"
         log_configuration {
-            cloud_watch_log_group_name = aws_cloudwatch_log_group.data-app-ecs-watch-grp.name
+            cloud_watch_log_group_name = aws_cloudwatch_log_group.collector-ecs-watch-grp.name
             s3_bucket_name = var.bucket_name
             s3_key_prefix = "./ecs_logs"
         }
@@ -14,10 +14,10 @@ resource "aws_ecs_cluster" "data-app-ecs-cluster" {
     }
 }
 
-resource "aws_ecs_service" "data-app-ecs-service" {
+resource "aws_ecs_service" "collector-ecs-service" {
     name = "${var.application_name}-ecs-service"
-    cluster = aws_ecs_cluster.data-app-ecs-cluster.id
-    # iam_role = aws_iam_role.data-app-ecs-role.arn # should not be configured if network is awsvpc on task definition
+    cluster = aws_ecs_cluster.collector-ecs-cluster.id
+    # iam_role = aws_iam_role.collector-ecs-role.arn # should not be configured if network is awsvpc on task definition
     availability_zone_rebalancing = "ENABLED"
     deployment_minimum_healthy_percent = 100
     enable_execute_command = true
@@ -40,21 +40,21 @@ resource "aws_ecs_service" "data-app-ecs-service" {
     }
     
     scheduling_strategy = "REPLICA" # only option with FARGATE
-    task_definition = aws_ecs_task_definition.data-app-ecs-task.arn
-    depends_on = [ aws_ecs_task_definition.data-app-ecs-task, aws_iam_role_policy_attachment.data-app-ecs-role-attachment, aws_iam_role.data-app-ecs-role]
+    task_definition = aws_ecs_task_definition.collector-ecs-task.arn
+    depends_on = [ aws_ecs_task_definition.collector-ecs-task, aws_iam_role_policy_attachment.collector-ecs-role-attachment, aws_iam_role.collector-ecs-role]
 }
 
-resource "aws_ecs_task_definition" "data-app-ecs-task" {
+resource "aws_ecs_task_definition" "collector-ecs-task" {
     family = "${var.application_name}-ecs-task"
     region = var.region
-    task_role_arn = aws_iam_role.data-app-ecs-role.arn
+    task_role_arn = aws_iam_role.collector-ecs-role.arn
     requires_compatibilities = [ "FARGATE" ]
-    execution_role_arn = aws_iam_role.data-app-ecs-role.arn
+    execution_role_arn = aws_iam_role.collector-ecs-role.arn
     cpu = "2048"
     memory = "8192"
     network_mode = "awsvpc"  # required for containers on ecs FARGATE
     container_definitions =jsonencode(local.container_defs)
-    depends_on = [ aws_ecs_cluster.data-app-ecs-cluster]
+    depends_on = [ aws_ecs_cluster.collector-ecs-cluster]
 
 }
 
@@ -82,7 +82,7 @@ locals {
                 logDriver="awslogs"
                 options= {
                     awslogs-region=var.region
-                    awslogs-group=aws_cloudwatch_log_group.data-app-ecs-watch-grp.name
+                    awslogs-group=aws_cloudwatch_log_group.collector-ecs-watch-grp.name
                     awslogs-stream-prefix="feth" # resolves to prefix-name/container-name/ecs-task-id -> feth/speech-collector-backend/<task-id>
                     # aws-logs-datetime-format="[%b %d, %Y %I:%M:%S %p]" # disallowed by aws
                     mode="non-blocking"
@@ -103,8 +103,8 @@ locals {
                 {name= "HUGGINGFACE_REPO", value="feth-data-force"}
             ]
             secrets= [
-                {name= "hf_token", valuefrom= data.aws_ssm_parameter.data-app-hf-token.arn},
-                {name= "db_password", valuefrom= data.aws_ssm_parameter.data-app-db-pass.arn},
+                {name= "hf_token", valuefrom= data.aws_ssm_parameter.collector-hf-token.arn},
+                {name= "db_password", valuefrom= data.aws_ssm_parameter.collector-db-pass.arn},
                 # {name= "aws_access_id", valuefrom= "simple_code"},
                 # {name= "aws_access_secret", valuefrom= "simple_code"}
             ]
@@ -124,7 +124,7 @@ locals {
 }
 
 
-resource "aws_cloudwatch_log_group" "data-app-ecs-watch-grp" {
+resource "aws_cloudwatch_log_group" "collector-ecs-watch-grp" {
     region = var.region
     name = "${var.application_name}-watch-grp"
     log_group_class = "STANDARD"
@@ -138,7 +138,47 @@ data "aws_iam_policy" "ecs-ssm-read-policy" {
     name = "AmazonSSMReadOnlyAccess"
 }
 
-resource "aws_iam_role" "data-app-ecs-role" {
+resource "aws_iam_policy" "ecs-ssm-exec-channel-policy" {
+    name= "EcsSsmExecPermissions"
+    description = "enables ecs to do container execs"
+    policy = jsonencode({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+            "Effect": "Allow",
+            "Action": [
+                "ssmmessages:CreateControlChannel",
+                "ssmmessages:CreateDataChannel",
+                "ssmmessages:OpenControlChannel",
+                "ssmmessages:OpenDataChannel"
+                ],
+            "Resource": "*"
+            }
+        ]
+    }
+    )
+}
+
+resource "aws_iam_policy" "ecs-allow-container-exec-policy" {
+    name= "EcsContainerExecPermissions"
+    description = "enables ecs to do container execs"
+    policy = jsonencode({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+            "Effect": "Allow",
+            "Action": [
+                "ecs:ExecuteCommand"
+                ],
+            "Resource": "${aws_ecs_cluster.collector-ecs-cluster.arn}"
+            }
+        ]
+    }
+    )
+}
+
+
+resource "aws_iam_role" "collector-ecs-role" {
     name = "${var.application_name}-ecs-role"
     assume_role_policy = jsonencode({
       Version = "2012-10-17"
@@ -150,17 +190,27 @@ resource "aws_iam_role" "data-app-ecs-role" {
             Service = "ecs-tasks.amazonaws.com"
           }
         }
-      ]
+       ]
     })
 }
-
-resource "aws_iam_role_policy_attachment" "data-app-ecs-role-attachment" {
-    policy_arn = data.aws_iam_policy.ecs-task-exec-policy.arn
-    role = aws_iam_role.data-app-ecs-role.name
+resource "aws_iam_role_policy_attachment" "collector-ecs-ssm-channel-attachment" {
+    policy_arn = aws_iam_policy.ecs-ssm-exec-channel-policy.arn
+    role = aws_iam_role.collector-ecs-role.name
   
 }
-resource "aws_iam_role_policy_attachment" "data-app-ecs-ssm-attachment" {
+resource "aws_iam_role_policy_attachment" "collector-ecs-container-exec-attachment" {
+    policy_arn = aws_iam_policy.ecs-allow-container-exec-policy.arn
+    role = aws_iam_role.collector-ecs-role.name
+  
+}
+
+resource "aws_iam_role_policy_attachment" "collector-ecs-role-attachment" {
+    policy_arn = data.aws_iam_policy.ecs-task-exec-policy.arn
+    role = aws_iam_role.collector-ecs-role.name
+  
+}
+resource "aws_iam_role_policy_attachment" "collector-ecs-ssm-attachment" {
     policy_arn = data.aws_iam_policy.ecs-ssm-read-policy.arn
-    role = aws_iam_role.data-app-ecs-role.name
+    role = aws_iam_role.collector-ecs-role.name
   
 }

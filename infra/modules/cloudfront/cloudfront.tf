@@ -4,7 +4,7 @@ locals {
 }
 
 # the origin bucket
-resource "aws_s3_bucket" "data-app-s3" {
+resource "aws_s3_bucket" "collector-s3" {
     tags = {
       "Name" = local.bucket_name
       "Project" = "Feth"
@@ -16,12 +16,12 @@ resource "aws_s3_bucket" "data-app-s3" {
     
 }
 
-resource "aws_cloudfront_distribution" "data-app-front" {
+resource "aws_cloudfront_distribution" "collector-front" {
     aliases = [  ]
     origin {
-      domain_name = aws_s3_bucket.data-app-s3.bucket_domain_name
+      domain_name = aws_s3_bucket.collector-s3.bucket_domain_name
       origin_id = local.origin_id
-      origin_access_control_id = aws_cloudfront_origin_access_control.data-app-oac.id
+      origin_access_control_id = aws_cloudfront_origin_access_control.collector-oac.id
     }
     default_root_object = "index.html"
     price_class = "PriceClass_200"
@@ -50,7 +50,7 @@ data "aws_iam_policy_document" "bucket-policy-body" {
         sid = "AllowCloudFrontReadWrite"
         effect = "Allow"
         actions = [ "s3:GetObject", "s3:PutObject" ]
-        resources = ["${aws_s3_bucket.data-app-s3.arn}/*"]
+        resources = ["${aws_s3_bucket.collector-s3.arn}/*"]
 
         principals {
           type = "Service"
@@ -59,17 +59,17 @@ data "aws_iam_policy_document" "bucket-policy-body" {
         condition {
           test = "StringEquals"
           variable = "AWS:SourceArn"
-          values = [ aws_cloudfront_distribution.data-app-front.arn ]
+          values = [ aws_cloudfront_distribution.collector-front.arn ]
         }
     }
 }
 
 resource "aws_s3_bucket_policy" "bucket-policy" {
-  bucket = aws_s3_bucket.data-app-s3.bucket
+  bucket = aws_s3_bucket.collector-s3.bucket
   policy= data.aws_iam_policy_document.bucket-policy-body.json
 }
 
-resource "aws_cloudfront_origin_access_control" "data-app-oac" {
+resource "aws_cloudfront_origin_access_control" "collector-oac" {
     name = "${var.application_name}-oac"
     origin_access_control_origin_type = "s3"
     signing_behavior = "always"
