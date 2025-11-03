@@ -9,9 +9,11 @@ class SettingsService:
     def get_setting(key: str, default: str = "") -> str:
         with session_lock:
             db = SessionLocal()
+            print(f"this is the db session {db}")
             try:
                 setting = db.query(Setting).filter(Setting.key == key).first()
-                return setting.value if setting else default
+                print("this is the db value", setting.value)
+                return setting.value if setting.value else default
             finally:
                 db.close()
 
@@ -34,5 +36,6 @@ class SettingsService:
     def ensure_storage_path():
         """Ensure storage directory exists"""
         storage_path = SettingsService.get_setting("storage_path", "recordings")
+        print(storage_path)
         os.makedirs(storage_path, exist_ok=True)
         return storage_path 
