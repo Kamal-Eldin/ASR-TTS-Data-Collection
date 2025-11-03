@@ -10,5 +10,5 @@ output "aurora_cluster_id" {
 }
 
 output "db_host" {
-    value = aws_rds_cluster.collector-db-cluster.reader_endpoint
+    value = aws_rds_cluster.collector-db-cluster.endpoint
 }

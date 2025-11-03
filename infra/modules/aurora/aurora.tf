@@ -20,6 +20,9 @@ resource "aws_rds_cluster" "collector-db-cluster" {
         seconds_until_auto_pause = 1800 # 30 mins until db auto pauses #!!! pause still charges for storage (snapshots are cheaper)
         
     }
+    lifecycle {
+    ignore_changes = [availability_zones]
+  }
     vpc_security_group_ids = [ var.db_secgrp_id  ]
     db_subnet_group_name = var.db_subnet_grp_name
     skip_final_snapshot = true

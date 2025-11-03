@@ -68,13 +68,13 @@ locals {
             portMappings= [
                 {
                     containerPort= var.backend_port
-                    protocol= "TCP"
+                    protocol= "tcp"
                     hostPort=var.backend_port
 
                 },
                 {
                     containerPort= 80
-                    protocol= "TCP"
+                    protocol= "tcp"
                     hostPort=80
                 }
             ],
