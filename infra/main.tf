@@ -13,7 +13,9 @@ module "fargate" {
   bucket_name      = module.cloudfront.bucket_name
   alb_tgrp_web_arn = module.alb.alb_tgrp_web_arn
   alb_tgrp_api_arn = module.alb.alb_tgrp_api_arn
-  depends_on = [ module.ssm ]
+  db_host          = module.aurora.db_host
+  db_name          = module.aurora.db_name
+  depends_on       = [ module.ssm ]
 } 
 
 module "vpc" {

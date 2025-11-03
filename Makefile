@@ -21,4 +21,4 @@ deploy: update_urls
 # 	docker compose down
 # 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
 	echo "deploying compose services and network..watch mode enabled for frontend & backend directories"
-	docker compose up --build -w
+	docker compose up --build --no-deps --force-recreate -w

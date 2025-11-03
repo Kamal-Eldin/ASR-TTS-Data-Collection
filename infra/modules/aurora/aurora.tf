@@ -1,5 +1,6 @@
 resource "aws_rds_cluster" "collector-db-cluster" {
-    cluster_identifier = "${var.application_name}-aurora-cluster"
+    # cluster_identifier = "${var.application_name}-aurora-cluster"
+    cluster_identifier_prefix = var.application_name
     engine = "aurora-mysql"
     engine_mode = "provisioned" # for serverless v2
     engine_version = var.aurora_version
@@ -29,7 +30,7 @@ resource "aws_rds_cluster" "collector-db-cluster" {
 resource "aws_rds_cluster_instance" "collector-db-instance" {
     region = var.region
     availability_zone = "${var.region}a"
-    identifier = "${var.application_name}-aurora-instance"
+    # identifier = "${var.application_name}-aurora-instance"
     cluster_identifier = aws_rds_cluster.collector-db-cluster.id
     instance_class = "db.serverless"  # for serverless v2
     engine = "aurora-mysql"

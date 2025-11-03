@@ -94,13 +94,26 @@ locals {
                     restartAttemptPeriod= 60 # minimum [60-1800] secs
                 }
             environment = [
-                {name="APP_PORT", value=tostring(var.backend_port)},
+                {name= "MYSQL_PORT", value="3306"},
+                {name= "MYSQL_USER", value="admin"},
+                {name= "MYSQL_HOST", value=var.db_host},
+                {name= "MYSQL_DATABASE", value=var.db_name},
+                {name= "APP_PORT", value=tostring(var.backend_port)},
+                {name= "BACKEND_URL", value="${var.db_host}:${var.backend_port}"},
+                {name= "VITE_BACKEND_URL", value="${var.db_host}:${var.backend_port}"},
+
                 {name= "MYSQL_PASSWORD_FILE", value= ""},
                 {name= "HUGGINGFACE_TOKEN_FILE", value= ""},
                 {name= "AWS_ACCESS_KEY_ID_FILE", value= ""},
                 {name= "MYSQL_ROOT_PASSWORD_FILE", value= ""},
                 {name= "AWS_SECRET_ACCESS_KEY_FILE",value= ""},
-                {name= "HUGGINGFACE_REPO", value="feth-data-force"}
+                {name= "HUGGINGFACE_REPO", value="feth-data-force"},
+                {name= "HF_EXPORT_TIMEOUT", value="300"},
+                {name= "S3_EXPORT_TIMEOUT", value="300"},
+                
+                {name= "STORAGE_PATH",value= "recordings"}
+
+
             ]
             secrets= [
                 {name= "hf_token", valuefrom= data.aws_ssm_parameter.collector-hf-token.arn},

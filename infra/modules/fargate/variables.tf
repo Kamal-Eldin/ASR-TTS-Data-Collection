@@ -102,6 +102,13 @@ variable "hf_repo" {
     description = "hugging face remote data export repo"
 }
 
+variable "db_host" {
+    type = string
+}
+variable "db_name" {
+    type = string
+}
+
 # variable "ssm-db-root-pass-arn" {
 #     type = string
 # }
