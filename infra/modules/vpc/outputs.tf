@@ -18,3 +18,7 @@ output "db_secgrp_id" {
 output "db_subnet_grp_name" {
     value = aws_db_subnet_group.collector-db-subnet-group.name
 }
+
+output "db_port" {
+    value = var.db_port
+}

@@ -38,7 +38,7 @@ resource "aws_rds_cluster_instance" "collector-db-instance" {
     instance_class = "db.serverless"  # for serverless v2
     engine = "aurora-mysql"
     engine_version = var.aurora_version
-    publicly_accessible = false
+    publicly_accessible = true
     apply_immediately = true
     count = 1
 }

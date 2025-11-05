@@ -104,7 +104,8 @@ resource "aws_security_group" "collector-db-secgrp" {
 
 resource "aws_vpc_security_group_ingress_rule" "collector-db-ingress" {
     security_group_id = aws_security_group.collector-db-secgrp.id
-    cidr_ipv4 = aws_vpc.collector-vpc.cidr_block
+    # cidr_ipv4 = aws_vpc.collector-vpc.cidr_block
+    cidr_ipv4 = "0.0.0.0/0"
     from_port = var.db_port
     to_port = var.db_port
     ip_protocol = "TCP"
@@ -113,7 +114,8 @@ resource "aws_vpc_security_group_ingress_rule" "collector-db-ingress" {
 
 resource "aws_vpc_security_group_egress_rule" "collector-db-egress" {
     security_group_id = aws_security_group.collector-db-secgrp.id
-    cidr_ipv4 = aws_vpc.collector-vpc.cidr_block
+    # cidr_ipv4 = aws_vpc.collector-vpc.cidr_block
+    cidr_ipv4 = "0.0.0.0/0"
     from_port = var.db_port
     to_port = var.db_port
     ip_protocol = "TCP"

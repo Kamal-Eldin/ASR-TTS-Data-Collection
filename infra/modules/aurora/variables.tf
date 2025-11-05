@@ -44,7 +44,6 @@ variable "db_name" {
 
 variable "db_port" {
     type= number
-    default = 3306
 }
 
 variable "db_secgrp_id" {

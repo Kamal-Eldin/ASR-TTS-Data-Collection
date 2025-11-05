@@ -23,9 +23,5 @@ variable "backend_port" {
 
 variable "db_port" {
     type = number
+    default = 3306
 }
-
-variable "db_name" {
-    type = string
-}
-

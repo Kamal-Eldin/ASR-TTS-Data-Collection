@@ -100,7 +100,7 @@ locals {
                 {name= "MYSQL_DATABASE", value=var.db_name},
                 {name= "APP_PORT", value=tostring(var.backend_port)},
                 {name= "BACKEND_URL", value="${var.db_host}:${var.backend_port}"},
-                {name= "VITE_BACKEND_URL", value="${var.db_host}:${var.backend_port}"},
+                {name= "VITE_BACKEND_URL", value="localhost:${var.backend_port}"},
 
                 {name= "MYSQL_PASSWORD_FILE", value= ""},
                 {name= "HUGGINGFACE_TOKEN_FILE", value= ""},

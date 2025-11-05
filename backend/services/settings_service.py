@@ -12,7 +12,8 @@ class SettingsService:
             print(f"this is the db session {db}")
             try:
                 setting = db.query(Setting).filter(Setting.key == key).first()
-                return setting.value if setting.value else default
+                print(f"Setting db query result: {setting}")
+                return setting.value if setting else default
             finally:
                 db.close()
 
