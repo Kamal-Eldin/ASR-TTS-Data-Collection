@@ -1,3 +1,4 @@
+name: deploy-backend
 "on":
     workflow_dispatch:
 
