@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { encodeWAV, mergeBuffers, createAudioContext } from '../utils/wavEncoder';
 
 
-const BACKEND_URL = 'http://localhost:8500';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 type RecordingMap = { [text: string]: string };
 

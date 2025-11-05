@@ -13,7 +13,9 @@ module "fargate" {
   bucket_name      = module.cloudfront.bucket_name
   alb_tgrp_web_arn = module.alb.alb_tgrp_web_arn
   alb_tgrp_api_arn = module.alb.alb_tgrp_api_arn
-  depends_on = [ module.ssm ]
+  db_host          = module.aurora.db_host
+  db_name          = module.aurora.db_name
+  depends_on       = [ module.ssm ]
 } 
 
 module "vpc" {
@@ -43,4 +45,20 @@ module "ssm" {
   aws_profile      = module.cloudfront.aws_profile
   application_name = module.cloudfront.application_name
   project_name     = module.cloudfront.project_name
+}
+
+
+module "aurora" {
+  source = "./modules/aurora"
+  region               = module.cloudfront.region
+  aws_profile          = module.cloudfront.aws_profile
+  application_name     = module.cloudfront.application_name
+  project_name         = module.cloudfront.project_name
+  backend_port         = module.fargate.backend_port
+  bucket_name          = module.cloudfront.bucket_name
+  db_root_pass_value   = module.ssm.collector-db-root-pass-value
+  db_secgrp_id         = module.vpc.db_secgrp_id
+  db_subnet_grp_name   = module.vpc.db_subnet_grp_name
+  db_port              = module.vpc.db_port
+  depends_on           = [ module.vpc ]
 }

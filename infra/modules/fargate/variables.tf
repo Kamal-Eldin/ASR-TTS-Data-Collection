@@ -51,7 +51,7 @@ variable "backend_image" {
 
 variable "backend_image_tag" {
     type = string
-    default = "linux"
+    default = "amd"
     description = "image tag for the backend container"
 }
 
@@ -100,6 +100,13 @@ variable "hf_repo" {
     sensitive = false
     default = "feth-data-force"
     description = "hugging face remote data export repo"
+}
+
+variable "db_host" {
+    type = string
+}
+variable "db_name" {
+    type = string
 }
 
 # variable "ssm-db-root-pass-arn" {

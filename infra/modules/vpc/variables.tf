@@ -20,3 +20,8 @@ variable "backend_port" {
     type = number
   
 }
+
+variable "db_port" {
+    type = number
+    default = 3306
+}

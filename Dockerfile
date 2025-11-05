@@ -8,12 +8,13 @@ LABEL description='''The voice and text data annotation platform. \
 
 ARG APP_PORT
 ENV APP_PORT=${APP_PORT}
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 
 WORKDIR /app
 
 # Copy package files and install dependencies
 COPY frontend/package.json ./frontend/
-RUN cd frontend && npm install
+RUN cd frontend && npm install && npm i --save-dev @types/node
 
 # Copy the rest of the frontend code
 COPY frontend/ ./frontend/
