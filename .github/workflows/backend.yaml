@@ -2,6 +2,15 @@ name: deploy-backend
 "on":
     workflow_dispatch:
 
+    push:
+        branches: 
+        - "release/*"
+        paths:
+            - "backend/**"
+            - '.github/workflows/backend.yaml'
+            - 'infra/*'
+    
+
 jobs:
     deploy-vpc:
         runs-on: ubuntu-22.04
