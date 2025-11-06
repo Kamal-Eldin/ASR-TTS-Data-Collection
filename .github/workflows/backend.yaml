@@ -10,10 +10,12 @@ name: deploy-backend
             - '.github/workflows/backend.yaml'
             - 'infra/*'
     
-
 jobs:
     deploy-vpc:
         runs-on: ubuntu-22.04
+        defaults:
+          run:
+            working-directory: ./infra
         steps:
             - name: checkout-repo
               uses: actions/checkout@v5
@@ -24,4 +26,31 @@ jobs:
                 aws-region: "eu-central-1"
                 aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
                 aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-      
+
+            - name: setup-terraform
+              uses: hashicorp/setup-terraform@v3
+
+            - name: init-terraform
+              run: |
+               echo "current working dir: ${PWD}"
+               terraform init
+               terraform validate
+              
+            - name: plan-vpc
+              id: plan-vpc
+              continue-on-error: false
+              run: |
+                terraform plan -target=module.vpc
+                echo "terraform step exit code: ${{steps.plan-vpc.outputs.exitcode}}"
+
+            - name: apply-vpc
+              id: apply-vpc
+              run: terraform apply -target=module.vpc --auto-approve
+
+            - name: read-state
+              id: read-state
+              run: 
+                set +x
+                echo "--------------------------------------"
+                echo "returning assets in the current state:"
+                terraform state list
