@@ -1,3 +1,20 @@
+output "region" {
+    value = var.region
+}
+
+output "aws_profile" {
+    value = var.aws_profile
+}
+
+output "application_name" {
+    value = var.application_name
+}
+
+output "project_name" {
+    value = var.project_name
+}
+
+
 output "vpc_id"{
     value = aws_vpc.collector-vpc.id
 }
@@ -22,3 +39,12 @@ output "db_subnet_grp_name" {
 output "db_port" {
     value = var.db_port
 }
+
+output "backend_port" {
+    value = var.backend_port
+}
+
+output "bucket_name" {
+    value = var.bucket_name
+}
+

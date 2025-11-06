@@ -21,19 +21,3 @@ output "bucket_name" {
     description = "the name of the cloudfront s3 origin bucket"
   
 }
-
-output "region" {
-    value = var.region
-}
-
-output "aws_profile" {
-    value = var.aws_profile
-}
-
-output "application_name" {
-    value = var.application_name
-}
-
-output "project_name" {
-    value = var.project_name
-}
