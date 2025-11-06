@@ -8,16 +8,16 @@ terraform {
 }
 
 provider "aws" {
-  profile = "Feth-IAM"
+  # profile = "Feth-IAM"
   region  = "eu-central-1"
 
 }
 
 terraform {
   backend "s3" {
+    # profile = "Feth-IAM"
     bucket  = "feth-s3"
     key     = "terraform/speech-collector-state.tfstate"
-    profile = "Feth-IAM"
     region  = "eu-central-1"
   }
 }
