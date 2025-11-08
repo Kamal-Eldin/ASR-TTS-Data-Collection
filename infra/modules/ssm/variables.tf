@@ -15,3 +15,16 @@ variable "application_name" {
 variable "project_name" {
     type = string
 }
+
+variable "HF_TOKEN" {
+    type = string
+    sensitive = true
+}
+variable "MYSQL_ROOT_PASSWORD" {
+    type = string
+    sensitive = true
+}
+variable "MYSQL_PASSWORD" {
+    type = string
+    sensitive = true
+}

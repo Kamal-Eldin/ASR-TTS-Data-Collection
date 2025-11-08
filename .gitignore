@@ -53,6 +53,7 @@ data/
 
 #keys
 *.txt
+secrets/
 
 #notebooks
 *.ipynb

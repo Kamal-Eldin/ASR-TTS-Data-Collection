@@ -9,13 +9,19 @@ name: deploy-backend
             - "backend/**"
             - '.github/workflows/backend.yaml'
             - 'infra/*'
-    
+env:
+    artifact_dir: .artifacts
+
 jobs:
     deploy-vpc:
         runs-on: ubuntu-22.04
         defaults:
           run:
             working-directory: ./infra
+        env:
+          TF_VAR_HF_TOKEN             : ${{secrets.TF_VAR_HF_TOKEN}}
+          TF_VAR_MYSQL_PASSWORD       : ${{secrets.TF_VAR_MYSQL_PASSWORD }}
+          TF_VAR_MYSQL_ROOT_PASSWORD  : ${{secrets.TF_VAR_MYSQL_ROOT_PASSWORD}}
         steps:
             - name: checkout-repo
               uses: actions/checkout@v5
@@ -44,8 +50,19 @@ jobs:
                 echo "terraform step exit code: ${{steps.plan-vpc.outputs.exitcode}}"
 
             - name: apply-vpc
-              id: apply-vpc
-              run: terraform apply -target=module.vpc --auto-approve
+              id: vpc
+              continue-on-error: false
+              run: |
+                terraform apply -target=module.vpc --auto-approve
+                # terraform output -json outputs.json
+
+            - name: deploy-ssm
+              id: ssm
+              continue-on-error: false
+              run: |
+                echo ""
+                terraform apply -target=module.ssm --auto-approve
+
 
             - name: read-state
               id: read-state

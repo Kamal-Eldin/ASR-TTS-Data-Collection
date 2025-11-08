@@ -54,13 +54,16 @@
     "remoteUser": "root",
     "containerEnv": {
 		"WORKSPACEFOLDER":"${containerWorkspaceFolder}",
-	    "PYTHONPATH":"${containerWorkspaceFolder}/backend"
+	    "PYTHONPATH":"${containerWorkspaceFolder}/backend",
+		"HF_TOKEN": 
     },
 	"mounts": [
 				{"source": "${localEnv:HOME}/.aws",
 				"target": "/root/.aws",
 				"type": "bind"}
 			],
+	"initializeCommand": "bash ./secrets/build_tf_secrets.sh",
+	"runArgs": 			["--env-file", "./secrets/tf_secrets.env"],
     "postCreateCommand": "bash /workspaces/Voice-Dataset-Collection/.devcontainer/postCreate.sh"
 
 }
