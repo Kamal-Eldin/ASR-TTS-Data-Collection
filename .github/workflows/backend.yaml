@@ -5,10 +5,10 @@ name: deploy-backend
     push:
         branches: 
         - "release/*"
-        paths:
-            - "backend/**"
-            - '.github/workflows/backend.yaml'
-            - 'infra/*'
+        # paths:
+        #     - "backend/**"
+        #     - '.github/workflows/backend.yaml'
+        #     - 'infra/*'
 env:
     artifact_dir: .artifacts
 
