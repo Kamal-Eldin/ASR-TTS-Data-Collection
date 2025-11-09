@@ -47,15 +47,15 @@
 				"hashicorp.terraform",
 				"amazonwebservices.aws-toolkit-vscode",
 				"github.vscode-github-actions",
-				"donjayamanne.githistory"
+				"donjayamanne.githistory",
+				"huizhou.githd"
 			]
 		}
 	},
     "remoteUser": "root",
     "containerEnv": {
 		"WORKSPACEFOLDER":"${containerWorkspaceFolder}",
-	    "PYTHONPATH":"${containerWorkspaceFolder}/backend",
-		"HF_TOKEN": 
+	    "PYTHONPATH":"${containerWorkspaceFolder}/backend"
     },
 	"mounts": [
 				{"source": "${localEnv:HOME}/.aws",

@@ -13,7 +13,7 @@ env:
     artifact_dir: .artifacts
 
 jobs:
-    deploy-vpc:
+    deploy-vpc-ssm:
         runs-on: ubuntu-22.04
         defaults:
           run:
