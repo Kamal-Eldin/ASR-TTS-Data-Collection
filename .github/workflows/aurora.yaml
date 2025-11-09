@@ -25,3 +25,23 @@ jobs:
         - name: checkout-repo
           uses: actions/checkout@v5
 
+        - name: auth-aws
+          uses: aws-actions/configure-aws-credentials@main
+          with:
+            aws-region: "eu-central-1"
+            aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+            aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+
+        - name: setup-terraform
+          uses: hashicorp/setup-terraform@v3
+
+        - name: init-terraform
+          run: |
+            echo "current working dir: ${PWD}"
+            terraform init
+            terraform validate
+
+        - name: deploy-db
+          id: db
+          continue-on-error: false
+          run: terraform apply -target=module.aurora --auto-approve
