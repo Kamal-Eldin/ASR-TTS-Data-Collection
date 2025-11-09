@@ -1,0 +1,26 @@
+name: deploy-backend
+on:
+    workflow_dispatch:
+
+    push:
+        branches: 
+        - "release/*"
+        # paths:
+        #     - "backend/**"
+        #     - '.github/workflows/backend.yaml'
+        #     - 'infra/*'
+env:
+    artifact_dir: .artifacts
+jobs:
+  deploy-db:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./infra
+    env:
+      TF_VAR_HF_TOKEN             : ${{secrets.TF_VAR_HF_TOKEN}}
+      TF_VAR_MYSQL_PASSWORD       : ${{secrets.TF_VAR_MYSQL_PASSWORD }}
+      TF_VAR_MYSQL_ROOT_PASSWORD  : ${{secrets.TF_VAR_MYSQL_ROOT_PASSWORD}}
+    steps:
+        - name: checkout-repo
+          uses: actions/checkout@v5
