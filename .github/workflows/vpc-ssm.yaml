@@ -4,7 +4,7 @@ name: deploy-backend
 
     push:
         branches: 
-        - "release/*"
+        - "release/*vpc*"
         # paths:
         #     - "backend/**"
         #     - '.github/workflows/backend.yaml'
