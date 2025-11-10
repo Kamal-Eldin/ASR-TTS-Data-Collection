@@ -25,43 +25,36 @@ jobs:
         steps:
             - name: checkout-repo
               uses: actions/checkout@v5
-
-            - name: auth-aws
-              uses: aws-actions/configure-aws-credentials@main
+            
+            - name: init-workflow
+              uses: ./.github/actions/init
               with:
-                aws-region: "eu-central-1"
-                aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
-                aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-
-            - name: setup-terraform
-              uses: hashicorp/setup-terraform@v3
-
-            - name: init-terraform
-              run: |
-               echo "current working dir: ${PWD}"
-               terraform init
-               terraform validate
-              
-            - name: plan-vpc
-              id: plan-vpc
-              continue-on-error: false
-              run: |
-                terraform plan -target=module.vpc
-                echo "terraform step exit code: ${{steps.plan-vpc.outputs.exitcode}}"
+                tf_hf_token         : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_password      : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_root_password : ${{env.TF_VAR_HF_TOKEN}}
+                aws_key_id          : ${{secrets.AWS_ACCESS_KEY_ID}}
+                aws_secret          : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+                aws_region          : "eu-central-1"
 
             - name: apply-vpc
               id: vpc
               continue-on-error: false
               run: |
+                set +x
+                echo "-------------------------------------------"
+                echo "Deploying VPC Module......................."
                 terraform apply -target=module.vpc --auto-approve
-                # terraform output -json outputs.json
+                echo "-------------------------------------------"
 
             - name: deploy-ssm
               id: ssm
               continue-on-error: false
               run: |
-                echo ""
+                set +x
+                echo "-------------------------------------------"
+                echo "Deploying SSM Module......................."
                 terraform apply -target=module.ssm --auto-approve
+                echo "-------------------------------------------"
 
 
             - name: read-state
