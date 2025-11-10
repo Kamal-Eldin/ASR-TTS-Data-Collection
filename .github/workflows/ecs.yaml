@@ -2,13 +2,13 @@ name: deploy-backend
 "on":
     workflow_dispatch:
 
-    push:
-        branches: 
-        - "release/*"
-        # paths:
-        #     - "backend/**"
-        #     - '.github/workflows/backend.yaml'
-        #     - 'infra/*'
+    # push:
+    #     branches: 
+    #     - "release/*"
+    #     paths:
+    #         - "backend/**"
+    #         - '.github/workflows/backend.yaml'
+    #         - 'infra/*'
 env:
     artifact_dir: .artifacts
     TF_VAR_HF_TOKEN             : ${{secrets.TF_VAR_HF_TOKEN}}

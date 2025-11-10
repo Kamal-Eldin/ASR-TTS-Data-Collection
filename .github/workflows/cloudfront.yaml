@@ -2,30 +2,65 @@ name: "deploy-cloudfront"
 "on":
     push:
         branches: 
-        - "release/*cloudfront*"
+        - "release/*"
         paths:
           - 'frontend/**'
-          - '.github/workflows/cloudfront.yml'
+          - '.github/workflows/cloudfront.yaml'
     workflow_call: 
     workflow_dispatch:
 
 env:
     artifact_dir: .artifacts
     bucket: s3://speech-collector-s3
+    TF_VAR_HF_TOKEN             : ${{secrets.TF_VAR_HF_TOKEN}}
+    TF_VAR_MYSQL_PASSWORD       : ${{secrets.TF_VAR_MYSQL_PASSWORD }}
+    TF_VAR_MYSQL_ROOT_PASSWORD  : ${{secrets.TF_VAR_MYSQL_ROOT_PASSWORD}}
         
 
 jobs:
     build-frontend:
         runs-on: ubuntu-latest
+        outputs:
+          ecs_dns: ${{ steps.cf.outputs.dns}}
         steps:
             - name: checkout repo
               uses: actions/checkout@v5
 
+            - name: init-workflow
+              uses: ./.github/actions/init
+              with:
+                tf_hf_token         : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_password      : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_root_password : ${{env.TF_VAR_HF_TOKEN}}
+                aws_key_id          : ${{secrets.AWS_ACCESS_KEY_ID}}
+                aws_secret          : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+                aws_region          : "eu-central-1"
+
+            - name: deploy-cloudfront
+              working-directory: ./infra
+              id: cf
+              continue-on-error: false
+              run: |
+                set +x
+                echo "-------------------------------------------"
+                echo "Deploying cloudfront Module......................."
+                terraform apply -target=module.cloudfront --auto-approve
+                echo "-------------------------------------------"
+                echo "dns=$(terraform output app_dns)" >> "$GITHUB_OUTPUT"
+
+            - name: read-dns
+              run: |
+                echo "This is the saved dns: ${{steps.cf.outputs.dns}}"
+                echo "This is the VITE host: http://${{steps.cf.outputs.dns}}:8500"
+
+
             - name: build frontend static files
               run: |
                 cd ./frontend
-                npm install
+                npm install && npm i --save-dev @types/node
                 npm run build
+              env:
+                VITE_BACKEND_URL: "http://${{steps.cf.outputs.dns}}:8500"
 
             - name: archive static files
               uses: actions/upload-artifact@v4
@@ -73,7 +108,7 @@ jobs:
               run: |
                 set +x
                 echo "Syncing static files from artifact to aws s3"
-                aws s3 sync "${{env.artifact_dir}}" "${{env.bucket}}" --delete
+                aws s3 sync ${{env.artifact_dir}} ${{env.bucket}} --delete
                 
   
 
