@@ -25,21 +25,15 @@ jobs:
         - name: checkout-repo
           uses: actions/checkout@v5
 
-        - name: auth-aws
-          uses: aws-actions/configure-aws-credentials@main
+        - name: init
+          uses: ./.github/actions/init
           with:
-            aws-region: "eu-central-1"
-            aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
-            aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-
-        - name: setup-terraform
-          uses: hashicorp/setup-terraform@v3
-
-        - name: init-terraform
-          run: |
-            echo "current working dir: ${PWD}"
-            terraform init
-            terraform validate
+            tf_hf_token     : ${{env.TF_VAR_HF_TOKEN}}
+            tf_db_pass      : ${{env.TF_VAR_MYSQL_PASSWORD }}
+            tf_db_root_pass : ${{env.TF_VAR_MYSQL_ROOT_PASSWORD}}
+            aws_region      : "eu-central-1"
+            aws_key_id      : ${{secrets.AWS_ACCESS_KEY_ID}}
+            aws_secret      : ${{secrets.AWS_SECRET_ACCESS_KEY}}
 
         - name: deploy-db
           id: db
