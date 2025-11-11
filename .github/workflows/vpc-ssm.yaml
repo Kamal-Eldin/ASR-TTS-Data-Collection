@@ -1,4 +1,4 @@
-name: deploy-backend
+name: deploy-vpc-ssm
 "on":
     workflow_dispatch:
 

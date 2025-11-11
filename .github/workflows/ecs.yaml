@@ -1,4 +1,4 @@
-name: deploy-backend
+name: deploy-ecs
 "on":
     workflow_dispatch:
 
@@ -46,8 +46,8 @@ jobs:
                 echo "Deploying ALB Module......................."
                 terraform apply -target=module.alb --auto-approve
                 echo "-------------------------------------------"
-                echo "Writing ALB DNS to app_dns git output"
-                echo "dns=terraform output app_dns" >> "$GITHUB_OUTPUT"
+                echo "Writing ALB DNS to ecs_dns git output"
+                echo "dns=terraform output ecs_dns" >> "$GITHUB_OUTPUT"
                 echo "-------------------------------------------"
               
             - name: apply-ecs
@@ -66,5 +66,5 @@ jobs:
                 set +x
                 terraform refresh &> /dev/null
                 echo "App url at:"
-                terraform output app_dns
+                terraform output ecs_dns
                 echo "-------------------------------------------"

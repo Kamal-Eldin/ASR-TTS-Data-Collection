@@ -21,3 +21,9 @@ output "bucket_name" {
     description = "the name of the cloudfront s3 origin bucket"
   
 }
+
+output "url" {
+    value = aws_cloudfront_distribution.collector-front.domain_name
+    description = "cloudfront domain name"
+  
+}

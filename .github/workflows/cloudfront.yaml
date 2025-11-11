@@ -21,7 +21,8 @@ jobs:
     build-frontend:
         runs-on: ubuntu-latest
         outputs:
-          ecs_dns: ${{ steps.cf.outputs.dns}}
+          ecs_dns : ${{ steps.cf.outputs.ecs_dns}}
+          cf_dns  : ${{ steps.cf.outputs.cf_dns}}
         steps:
             - name: checkout repo
               uses: actions/checkout@v5
@@ -30,8 +31,8 @@ jobs:
               uses: ./.github/actions/init
               with:
                 tf_hf_token         : ${{env.TF_VAR_HF_TOKEN}}
-                tf_db_password      : ${{env.TF_VAR_HF_TOKEN}}
-                tf_db_root_password : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_pass          : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_root_pass     : ${{env.TF_VAR_HF_TOKEN}}
                 aws_key_id          : ${{secrets.AWS_ACCESS_KEY_ID}}
                 aws_secret          : ${{secrets.AWS_SECRET_ACCESS_KEY}}
                 aws_region          : "eu-central-1"
@@ -46,12 +47,13 @@ jobs:
                 echo "Deploying cloudfront Module......................."
                 terraform apply -target=module.cloudfront --auto-approve
                 echo "-------------------------------------------"
-                echo "dns=$(terraform output app_dns)" >> "$GITHUB_OUTPUT"
+                echo "ecs_dns=$(terraform output app_dns)" >> "$GITHUB_OUTPUT"
+                echo "cf_dns=$(terraform output   cf_dns)" >> "$GITHUB_OUTPUT"
 
             - name: read-dns
               run: |
-                echo "This is the saved dns: ${{steps.cf.outputs.dns}}"
-                echo "This is the VITE host: http://${{steps.cf.outputs.dns}}:8500"
+                echo "This is the CF dns: ${{steps.cf.outputs.cf_dns}}"
+                echo "This is the VITE host: ${{steps.cf.outputs.ecs_dns}}:8500"
 
 
             - name: build frontend static files
@@ -60,13 +62,17 @@ jobs:
                 npm install && npm i --save-dev @types/node
                 npm run build
               env:
-                VITE_BACKEND_URL: "http://${{steps.cf.outputs.dns}}:8500"
+                VITE_BACKEND_URL: "${{steps.cf.outputs.ecs_dns}}:8500"
 
             - name: archive static files
               uses: actions/upload-artifact@v4
               with:
                 name: static_files
                 path: 'frontend/dist'
+
+            - name: write-url
+              run: |
+                set +x
 
     upload-to-origin:
         needs:
@@ -108,7 +114,11 @@ jobs:
               run: |
                 set +x
                 echo "Syncing static files from artifact to aws s3"
-                aws s3 sync ${{env.artifact_dir}} ${{env.bucket}} --delete
-                
+                # aws s3 sync ${{env.artifact_dir}} ${{env.bucket}} --delete
+                echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--"
+                echo "This is the web URL: ${{needs.build-frontend.outputs.cf_dns}}"
+                echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--"
+              
+
   
 
