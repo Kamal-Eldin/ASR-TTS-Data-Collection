@@ -119,7 +119,7 @@ jobs:
                 echo "-----------------------------------------------------------"
                 echo "checksum the static files @ s3 origin:\n"
                 num_objs=$(aws s3 ls ${{env.bucket}} --summarize | grep -oP '\d' | head -n 1)
-                if [[ $num_objs < 1]] then
+                if [[ $num_objs < 1]]; then
                   echo "Successfully upload static files!!!"
                 else
                   echo "Failed to upload static files"
