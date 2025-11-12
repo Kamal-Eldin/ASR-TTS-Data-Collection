@@ -50,4 +50,3 @@ variable "MYSQL_PASSWORD" {
     type = string
     sensitive = true
 }
-

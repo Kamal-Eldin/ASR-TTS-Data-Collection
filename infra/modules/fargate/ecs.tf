@@ -59,6 +59,7 @@ resource "aws_ecs_task_definition" "collector-ecs-task" {
 }
 
 locals {
+    CORS_ORIGINS = var.cf_dns
     container_defs= [
         {
             name= var.container_name
@@ -111,6 +112,7 @@ locals {
                 {name= "HF_EXPORT_TIMEOUT", value="300"},
                 {name= "S3_EXPORT_TIMEOUT", value="300"},
                 
+                {name= "CORS_ORIGINS", value=local.CORS_ORIGINS},
                 {name= "STORAGE_PATH",value= "recordings"}
 
 

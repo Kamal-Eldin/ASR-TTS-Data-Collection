@@ -109,12 +109,6 @@ variable "db_name" {
     type = string
 }
 
-# variable "ssm-db-root-pass-arn" {
-#     type = string
-# }
-# variable "ssm-db-pass-arn" {
-#     type = string
-# }
-# variable "ssm-hf-token-arn" {
-#     type = string
-# }
+variable "cf_dns" {
+    type = string
+}

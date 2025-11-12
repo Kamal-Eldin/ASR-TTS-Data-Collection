@@ -2,9 +2,9 @@ name: deploy-ecs
 "on":
     workflow_dispatch:
 
-    # push:
-    #     branches: 
-    #     - "release/*"
+    push:
+        branches: 
+        - "release/*"
     #     paths:
     #         - "backend/**"
     #         - '.github/workflows/backend.yaml'

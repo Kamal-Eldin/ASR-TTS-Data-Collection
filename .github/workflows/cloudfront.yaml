@@ -48,7 +48,7 @@ jobs:
                 terraform apply -target=module.cloudfront --auto-approve
                 echo "-------------------------------------------"
                 echo "ecs_dns=$(terraform output ecs_dns)" >> "$GITHUB_OUTPUT"
-                echo "cf_dns=$(terraform output   cf_dns)" >> "$GITHUB_OUTPUT"
+                echo "cf_dns=$(terraform output cf_dns)" >> "$GITHUB_OUTPUT"
 
             - name: read-dns
               run: |

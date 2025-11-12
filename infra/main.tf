@@ -15,7 +15,8 @@ module "fargate" {
   alb_tgrp_api_arn = module.alb.alb_tgrp_api_arn
   db_host          = module.aurora.db_host
   db_name          = module.aurora.db_name
-  depends_on       = [ module.vpc, module.ssm, module.aurora  ]
+  cf_dns           = module.cloudfront.cloudfront_domain
+  depends_on       = [ module.vpc, module.ssm, module.aurora, module.cloudfront ]
 } 
 
 module "alb" {
