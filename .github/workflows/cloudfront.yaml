@@ -47,7 +47,7 @@ jobs:
                 echo "Deploying cloudfront Module......................."
                 terraform apply -target=module.cloudfront --auto-approve
                 echo "-------------------------------------------"
-                echo "ecs_dns=$(terraform output app_dns)" >> "$GITHUB_OUTPUT"
+                echo "ecs_dns=$(terraform output ecs_dns)" >> "$GITHUB_OUTPUT"
                 echo "cf_dns=$(terraform output   cf_dns)" >> "$GITHUB_OUTPUT"
 
             - name: read-dns
@@ -61,6 +61,9 @@ jobs:
                 cd ./frontend
                 npm install && npm i --save-dev @types/node
                 npm run build
+                echo "-------------------------------------------"
+                echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE 'speech-collector-alb')"
+                echo "-------------------------------------------"
               env:
                 VITE_BACKEND_URL: "${{steps.cf.outputs.ecs_dns}}:8500"
 
@@ -69,10 +72,6 @@ jobs:
               with:
                 name: static_files
                 path: 'frontend/dist'
-
-            - name: write-url
-              run: |
-                set +x
 
     upload-to-origin:
         needs:
@@ -113,8 +112,18 @@ jobs:
             - name: upload static files to origin
               run: |
                 set +x
+                echo "current workdir: $PWD"
+                echo "checksum the list of static files:\n $(ls ${{env.artifact_dir}})"
                 echo "Syncing static files from artifact to aws s3"
-                # aws s3 sync ${{env.artifact_dir}} ${{env.bucket}} --delete
+                aws s3 sync ${{env.artifact_dir}} ${{env.bucket}}
+                echo "-----------------------------------------------------------"
+                echo "checksum the static files @ s3 origin:\n"
+                num_objs=$(aws s3 ls ${{env.bucket}} --summarize | grep -oP '\d' | head -n 1)
+                if [[ $num_objs < 1]] then
+                  echo "Successfully upload static files!!!"
+                else
+                  echo "Failed to upload static files"
+                fi
                 echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--"
                 echo "This is the web URL: ${{needs.build-frontend.outputs.cf_dns}}"
                 echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--"
