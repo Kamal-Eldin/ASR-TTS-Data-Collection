@@ -65,7 +65,7 @@ jobs:
                 echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE 'speech-collector-alb')"
                 echo "-------------------------------------------"
               env:
-                VITE_BACKEND_URL: "${{steps.cf.outputs.ecs_dns}}:8500"
+                VITE_BACKEND_URL: "http://${{steps.cf.outputs.ecs_dns}}:8500"
 
             - name: archive static files
               uses: actions/upload-artifact@v4
@@ -98,7 +98,8 @@ jobs:
                 if [[ $nlines > 1 ]]; then
                   echo "Successfully built and read static files!!!"
                 else
-                  echo "Failed to read static files artifact"
+                  echo "Failed to read static files artifact" >&2
+                  exit 1
                 fi
                 echo "-----------------------------------------"
 
@@ -121,7 +122,6 @@ jobs:
                 num_objs=$(aws s3 ls ${{env.bucket}} --summarize | grep -oP '\d' | head -n 1)
                 if [[ $num_objs > 1 ]]; then
                   echo "Successfully upload static files!!!"
-                  exit 0
                 else
                   echo "Failed to upload static files" >&2
                   exit 1
