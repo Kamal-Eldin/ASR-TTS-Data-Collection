@@ -3,9 +3,9 @@ name: "deploy-cloudfront"
     push:
         branches: 
         - "release/*"
-        paths:
-          - 'frontend/**'
-          - '.github/workflows/cloudfront.yaml'
+        # paths:
+        #   - 'frontend/**'
+        #   - '.github/workflows/cloudfront.yaml'
     workflow_call: 
     workflow_dispatch:
 
