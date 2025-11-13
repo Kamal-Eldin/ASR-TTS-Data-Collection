@@ -100,8 +100,8 @@ locals {
                 {name= "MYSQL_HOST", value=var.db_host},
                 {name= "MYSQL_DATABASE", value=var.db_name},
                 {name= "APP_PORT", value=tostring(var.backend_port)},
-                {name= "BACKEND_URL", value="${var.db_host}:${var.backend_port}"},
-                {name= "VITE_BACKEND_URL", value="localhost:${var.backend_port}"},
+                {name= "BACKEND_URL", value="http://localhost:${var.backend_port}"},
+                {name= "VITE_BACKEND_URL", value="http://localhost:${var.backend_port}"},
 
                 {name= "MYSQL_PASSWORD_FILE", value= ""},
                 {name= "HUGGINGFACE_TOKEN_FILE", value= ""},
@@ -112,7 +112,7 @@ locals {
                 {name= "HF_EXPORT_TIMEOUT", value="300"},
                 {name= "S3_EXPORT_TIMEOUT", value="300"},
                 
-                {name= "CORS_ORIGINS", value=local.CORS_ORIGINS},
+                {name= "CORS_ORIGINS", value="https://${local.CORS_ORIGINS}"},
                 {name= "STORAGE_PATH",value= "recordings"}
 
 

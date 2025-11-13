@@ -22,8 +22,8 @@ app = FastAPI(title="TTS Dataset Generator", version="1.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://localhost:\d{2,4}$",
-    allow_origins=AppConfig.CORS_ORIGINS,
+    # allow_origin_regex=r"^https?://(localhost:\d{2,4}|[\w.-]+\.cloudfront\.net)$",
+    allow_origins=[AppConfig.CORS_ORIGINS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,4 +55,5 @@ app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
+    print(f"Set CORS_ORIGINS: {AppConfig.CORS_ORIGINS}")
     uvicorn.run(app, host="0.0.0.0", port=8500) 
