@@ -1,15 +1,15 @@
 name: "deploy-cloudfront"
 "on":
-    push:
-        branches: 
-        - "release/*"
+    # push:
+    #     branches: 
+    #     - "release/*"
         # paths:
         #   - 'frontend/**'
         #   - '.github/workflows/cloudfront.yaml'
     workflow_call: 
     workflow_run: 
       workflows:
-        - deploy-ecs
+        - deploy-backend
       branches: 
         - release/*
 
@@ -27,8 +27,9 @@ jobs:
     build-frontend:
         runs-on: ubuntu-latest
         outputs:
-          ecs_dns : ${{ steps.cf.outputs.ecs_dns}}
-          cf_dns  : ${{ steps.cf.outputs.cf_dns}}
+          ecs_dns   : ${{ steps.cf.outputs.ecs_dns}}
+          cf_dns    : ${{ steps.cf.outputs.cf_dns}}
+          back_port : ${{ steps.cf.outputs.back_port}}
         steps:
             - name: checkout repo
               uses: actions/checkout@v5
@@ -43,23 +44,34 @@ jobs:
                 aws_secret          : ${{secrets.AWS_SECRET_ACCESS_KEY}}
                 aws_region          : "eu-central-1"
 
-            - name: deploy-cloudfront
+            # - name: deploy-cloudfront
+            #   working-directory: ./infra
+            #   id: cf
+            #   continue-on-error: false
+            #   run: |
+            #     set +x
+            #     echo "-------------------------------------------"
+            #     echo "Deploying cloudfront Module......................."
+            #     terraform apply -target=module.cloudfront --auto-approve
+            #     echo "-------------------------------------------"
+            #     echo "ecs_dns=$(terraform output ecs_dns)" >> "$GITHUB_OUTPUT"
+            #     echo "cf_dns=$(terraform output cf_dns)" >> "$GITHUB_OUTPUT"
+
+            - name: store vars
               working-directory: ./infra
-              id: cf
               continue-on-error: false
+              id: cf
               run: |
                 set +x
+                terraform refresh
                 echo "-------------------------------------------"
-                echo "Deploying cloudfront Module......................."
-                terraform apply -target=module.cloudfront --auto-approve
+                echo "ecs_dns=$(terraform output ecs_dns)"            >> "$GITHUB_OUTPUT"
+                echo "cf_dns=$(terraform output cf_dns)"              >> "$GITHUB_OUTPUT"
+                echo "back_port=$(terraform output backend_port)"     >> "$GITHUB_OUTPUT"
                 echo "-------------------------------------------"
-                echo "ecs_dns=$(terraform output ecs_dns)" >> "$GITHUB_OUTPUT"
-                echo "cf_dns=$(terraform output cf_dns)" >> "$GITHUB_OUTPUT"
-
-            - name: read-dns
-              run: |
-                echo "This is the CF dns: ${{steps.cf.outputs.cf_dns}}"
-                echo "This is the VITE host: ${{steps.cf.outputs.ecs_dns}}:8500"
+                echo "This is the CF dns: $cf_dns"
+                echo "This is the VITE host: $ecs_dns:$back_port"
+                echo "-------------------------------------------"
 
 
             - name: build frontend static files
@@ -71,7 +83,7 @@ jobs:
                 echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE 'speech-collector-alb')"
                 echo "-------------------------------------------"
               env:
-                VITE_BACKEND_URL: "http://${{steps.cf.outputs.ecs_dns}}:8500"
+                VITE_BACKEND_URL: "http://${{steps.cf.outputs.ecs_dns}}:${{steps.cf.outputs.back_port}}"
 
             - name: archive static files
               uses: actions/upload-artifact@v4

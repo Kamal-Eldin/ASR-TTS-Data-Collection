@@ -40,7 +40,7 @@ resource "aws_cloudfront_distribution" "collector-front" {
         cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
     }
     viewer_certificate {
-      cloudfront_default_certificate = false
+      cloudfront_default_certificate = true
     }
     enabled = true
 }

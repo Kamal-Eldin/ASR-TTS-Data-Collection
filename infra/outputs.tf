@@ -5,3 +5,7 @@ output "ecs_dns" {
 output "cf_dns" {
   value = module.cloudfront.cloudfront_domain
 }
+
+output "backend_port" {
+  value = var.backend_port
+}

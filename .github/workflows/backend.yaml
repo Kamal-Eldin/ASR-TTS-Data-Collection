@@ -1,14 +1,14 @@
-name: deploy-ecs
+name: deploy-backend
 "on":
     workflow_dispatch:
 
     push:
         branches: 
         - "release/*"
-    #     paths:
-    #         - "backend/**"
-    #         - '.github/workflows/backend.yaml'
-    #         - 'infra/*'
+        paths:
+            - "backend/**"
+            - '.github/workflows/backend.yaml'
+            - 'infra/*'
 env:
     artifact_dir: .artifacts
     TF_VAR_HF_TOKEN             : ${{secrets.TF_VAR_HF_TOKEN}}
@@ -16,10 +16,10 @@ env:
     TF_VAR_MYSQL_ROOT_PASSWORD  : ${{secrets.TF_VAR_MYSQL_ROOT_PASSWORD}}
 
 jobs:
-    deploy-ecs:
+    deploy-backend:
         runs-on: ubuntu-22.04
         outputs:
-          ecs_dns: ${{ steps.alb.outputs.dns}}
+          ecs_dns: ${{ steps.deploy.outputs.dns}}
         defaults:
           run:
             working-directory: ./infra
@@ -37,27 +37,17 @@ jobs:
                 aws_secret          : ${{secrets.AWS_SECRET_ACCESS_KEY}}
                 aws_region          : "eu-central-1"
 
-            - name: apply-alb
-              id: alb
+            - name: apply-tf
+              id: deploy
               continue-on-error: false
               run: |
                 set +x
                 echo "-------------------------------------------"
-                echo "Deploying ALB Module......................."
-                terraform apply -target=module.alb --auto-approve
+                echo "Deploying terraform systems......................."
+                terraform apply --auto-approve
                 echo "-------------------------------------------"
                 echo "Writing ALB DNS to ecs_dns git output"
                 echo "dns=terraform output ecs_dns" >> "$GITHUB_OUTPUT"
-                echo "-------------------------------------------"
-              
-            - name: apply-ecs
-              id: ecs
-              continue-on-error: false
-              run: |
-                set +x
-                echo "-------------------------------------------"
-                echo "Deploying Fargate Module......................."
-                terraform apply -target=module.fargate --auto-approve
                 echo "-------------------------------------------"
 
             - name: DNS
