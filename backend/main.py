@@ -23,7 +23,7 @@ app = FastAPI(title="TTS Dataset Generator", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     # allow_origin_regex=r"^https?://(localhost:\d{2,4}|[\w.-]+\.cloudfront\.net)$",
-    allow_origins=[AppConfig.CORS_ORIGINS],
+    allow_origins=AppConfig.CORS_ORIGINS.split(','),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

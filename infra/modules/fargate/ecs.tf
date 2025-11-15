@@ -112,7 +112,7 @@ locals {
                 {name= "HF_EXPORT_TIMEOUT", value="300"},
                 {name= "S3_EXPORT_TIMEOUT", value="300"},
                 
-                {name= "CORS_ORIGINS", value="https://${local.CORS_ORIGINS}"},
+                {name= "CORS_ORIGINS", value="https://${local.CORS_ORIGINS}, http://${local.CORS_ORIGINS}"},
                 {name= "STORAGE_PATH",value= "recordings"}
 
 
