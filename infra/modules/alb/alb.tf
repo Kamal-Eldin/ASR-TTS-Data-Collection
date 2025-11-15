@@ -2,12 +2,19 @@ resource "aws_alb_target_group" "collector-backend-target-api" {
     # name= "${var.application_name}-alb-target-80" # no name allows terraform to destroy and recreate with new name.
     protocol = "HTTP"
     port = var.backend_port
-    target_type = "ip" # flexible targeting as opposed to fixed resource (instance id)
-    vpc_id = var.vpc_id # specify the vpc (i.e., the cidar block where the target resources exist)
+    target_type = "ip"        # flexible targeting as opposed to fixed resource (instance id)
+    vpc_id = var.vpc_id       # specify the vpc (i.e., the cidar block where the target resources exist)
     region = var.region
     health_check {
         enabled = true
-        interval = 10
+        healthy_threshold = 2       # 2 successful health checks are sufficient to declare resource healthy (min 2 - max 10)
+        unhealthy_threshold = 3
+        interval = 180              # 3 mins between consecutive health checks
+        protocol = "HTTP"
+        path = "/health"
+        port = var.backend_port 
+        timeout = 60
+
     }
     lifecycle {
       create_before_destroy = true # ensures that the listener has a target group to point to.
@@ -18,15 +25,22 @@ resource "aws_alb_target_group" "collector-backend-target-web" {
     # name= "${var.application_name}-alb-target-80" # no name allows terraform to destroy and recreate with new name.
     protocol = "HTTP"
     port = 80
-    target_type = "ip" # flexible targeting as opposed to fixed resource (instance id)
-    vpc_id = var.vpc_id # specify the vpc (i.e., the cidar block where the target resources exist)
+    target_type = "ip"      # flexible targeting as opposed to fixed resource (instance id)
+    vpc_id = var.vpc_id     # specify the vpc (i.e., the cidar block where the target resources exist)
     region = var.region
     health_check {
         enabled = true
-        interval = 10
+        healthy_threshold = 2       # 2 successful health checks are sufficient to declare resource healthy (min 2 - max 10)
+        unhealthy_threshold = 3
+        interval = 180              # 3 mins between consecutive health checks
+        protocol = "HTTP"
+        path = "/health"
+        port = var.backend_port 
+        timeout = 60
+
     }
     lifecycle {
-      create_before_destroy = true # ensures that the listener has a target group to point to.
+      create_before_destroy = true  # ensures that the listener has a target group to point to.
     }
   
 }
@@ -34,9 +48,9 @@ resource "aws_alb_target_group" "collector-backend-target-web" {
 resource "aws_alb" "collector-alb" {
     name = "${var.application_name}-alb"
     load_balancer_type = "application"
-    subnets = var.subnets_ids # where should we place the alb instance itself (2 AV Zones required)
+    subnets = var.subnets_ids             # where should we place the alb instance itself (2 AV Zones required)
     security_groups = [var.secgrp_id]
-    internal = false # internet-facing (exists in public subnet to be reachable by cloudfront)
+    internal = false                      # internet-facing (exists in public subnet to be reachable by cloudfront)
 }
 
 resource "aws_alb_listener" "collector-web-listener" {
