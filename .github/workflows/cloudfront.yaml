@@ -1,8 +1,8 @@
 name: "deploy-cloudfront"
 "on":
-    # push:
-    #     branches: 
-    #     - "release/*"
+    push:
+        branches: 
+        - "release/*"
         # paths:
         #   - 'frontend/**'
         #   - '.github/workflows/cloudfront.yaml'
@@ -33,6 +33,7 @@ jobs:
         steps:
             - name: checkout repo
               uses: actions/checkout@v5
+              
 
             - name: init-workflow
               uses: ./.github/actions/init
