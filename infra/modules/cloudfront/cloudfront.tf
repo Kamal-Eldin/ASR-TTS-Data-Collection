@@ -18,6 +18,7 @@ resource "aws_s3_bucket" "collector-s3" {
 
 resource "aws_cloudfront_distribution" "collector-front" {
     aliases = [  ]
+    
     origin {
       domain_name = aws_s3_bucket.collector-s3.bucket_domain_name
       origin_id = local.origin_id
@@ -34,12 +35,12 @@ resource "aws_cloudfront_distribution" "collector-front" {
     default_cache_behavior {
         allowed_methods = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
         cached_methods = [ "GET", "HEAD" ]
-        viewer_protocol_policy = "redirect-to-https"
+        viewer_protocol_policy = "allow-all"
         target_origin_id = local.origin_id
         cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
     }
     viewer_certificate {
-      cloudfront_default_certificate = true
+      cloudfront_default_certificate = false
     }
     enabled = true
 }

@@ -7,6 +7,12 @@ name: "deploy-cloudfront"
         #   - 'frontend/**'
         #   - '.github/workflows/cloudfront.yaml'
     workflow_call: 
+    workflow_run: 
+      workflows:
+        - deploy-ecs
+      branches: 
+        - release/*
+
     workflow_dispatch:
 
 env:
