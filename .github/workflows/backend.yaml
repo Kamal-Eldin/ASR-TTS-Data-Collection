@@ -6,7 +6,7 @@ name: deploy-backend
         branches: 
         - "release/*"
         paths:
-            - "backend/**"
+            - "backend/*"
             - '.github/workflows/backend.yaml'
             - 'infra/*'
 env:

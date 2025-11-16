@@ -50,3 +50,9 @@ variable "MYSQL_PASSWORD" {
     type = string
     sensitive = true
 }
+
+variable "origin_path" {
+    type = string
+    default = "/frontend"
+    sensitive = false
+}

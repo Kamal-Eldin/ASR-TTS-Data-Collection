@@ -68,5 +68,6 @@ module "cloudfront" {
   project_name     = var.project_name
   backend_port     = var.backend_port
   bucket_name      = var.bucket_name
+  origin_path      = var.origin_path
   depends_on       = [ module.vpc ]
 }

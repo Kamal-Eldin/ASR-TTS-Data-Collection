@@ -9,3 +9,7 @@ output "cf_dns" {
 output "backend_port" {
   value = var.backend_port
 }
+
+output "origin_path" {
+  value = var.origin_path
+}
