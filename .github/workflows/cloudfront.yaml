@@ -55,10 +55,10 @@ jobs:
             #     echo "Deploying cloudfront Module......................."
             #     terraform apply -target=module.cloudfront --auto-approve
             #     echo "-------------------------------------------"
-            #     echo "ecs_dns=$(terraform output ecs_dns)" >> "$GITHUB_OUTPUT"
-            #     echo "cf_dns=$(terraform output cf_dns)" >> "$GITHUB_OUTPUT"
+            #     echo "ecs_dns=$(terraform output -raw ecs_dns)" >> "$GITHUB_OUTPUT"
+            #     echo "cf_dns=$(terraform output -raw cf_dns)" >> "$GITHUB_OUTPUT"
 
-            - name: store vars
+            - name: terraform outputs
               working-directory: ./infra
               continue-on-error: false
               id: cf
@@ -66,12 +66,9 @@ jobs:
                 set +x
                 terraform refresh
                 echo "-------------------------------------------"
-                echo "ecs_dns=$(terraform output ecs_dns)"            >> "$GITHUB_OUTPUT"
-                echo "cf_dns=$(terraform output cf_dns)"              >> "$GITHUB_OUTPUT"
-                echo "back_port=$(terraform output backend_port)"     >> "$GITHUB_OUTPUT"
-                echo "-------------------------------------------"
-                echo "This is the CF dns: $cf_dns"
-                echo "This is the VITE host: $ecs_dns:$back_port"
+                echo "ecs_dns=$(terraform output -raw ecs_dns)"            >> "$GITHUB_OUTPUT"
+                echo "cf_dns=$(terraform output -raw cf_dns)"              >> "$GITHUB_OUTPUT"
+                echo "back_port=$(terraform output -raw backend_port)"     >> "$GITHUB_OUTPUT"
                 echo "-------------------------------------------"
 
 
@@ -83,8 +80,10 @@ jobs:
                 echo "-------------------------------------------"
                 echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE 'speech-collector-alb')"
                 echo "-------------------------------------------"
+                echo "this is the VITE_URL: $VITE_BACKEND_URL"
+                echo "-------------------------------------------"
               env:
-                VITE_BACKEND_URL: "http://${{steps.cf.outputs.ecs_dns}}:${{steps.cf.outputs.back_port}}"
+                VITE_BACKEND_URL: http://${{steps.cf.outputs.ecs_dns}}:${{steps.cf.outputs.back_port}}
 
             - name: archive static files
               uses: actions/upload-artifact@v4
