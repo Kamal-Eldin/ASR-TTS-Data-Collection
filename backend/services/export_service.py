@@ -9,7 +9,7 @@ from database.connection import SessionLocal
 from database.session import session_lock
 from services.settings_service import SettingsService
 from utils.logging import log_interaction
-from config import AppConfig
+from core.config import AppConfig
 
 '''
 export services offers 2 export methods to S3 and to huggingface
