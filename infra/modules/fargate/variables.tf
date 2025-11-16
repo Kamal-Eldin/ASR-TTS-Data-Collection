@@ -112,3 +112,8 @@ variable "db_name" {
 variable "cf_dns" {
     type = string
 }
+
+variable "cors_regex" {
+    type = string
+    default = "^https?://(localhost:\\d{2,4}|[\\w.-]+\\.cloudfront\\.net)$"
+}

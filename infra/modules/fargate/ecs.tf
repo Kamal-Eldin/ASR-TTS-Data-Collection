@@ -113,7 +113,8 @@ locals {
                 {name= "S3_EXPORT_TIMEOUT", value="300"},
                 
                 {name= "CORS_ORIGINS", value="https://${local.CORS_ORIGINS}, http://${local.CORS_ORIGINS}"},
-                {name= "STORAGE_PATH",value= "recordings"}
+                {name= "CORS_REGEX"  , value=var.cors_regex},
+                {name= "STORAGE_PATH", value="recordings"}
 
 
             ]

@@ -23,7 +23,7 @@ resource "aws_cloudfront_distribution" "collector-front" {
       domain_name = aws_s3_bucket.collector-s3.bucket_domain_name
       origin_id = local.origin_id
       origin_access_control_id = aws_cloudfront_origin_access_control.collector-oac.id
-      # origin_path = var.origin_path
+      origin_path = var.origin_path
     }
     default_root_object = "index.html"
     price_class = "PriceClass_200"
