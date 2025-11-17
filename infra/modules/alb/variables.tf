@@ -32,3 +32,7 @@ variable "secgrp_id" {
 variable "subnets_ids" {
     type = list(string)
 }
+
+variable "cf_dns" {
+    type = string
+}

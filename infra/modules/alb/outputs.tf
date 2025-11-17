@@ -10,3 +10,7 @@ output "app_dns" {
     description = "url to reach the ecs service after deployment"
   
 }
+
+output "alb_id" {
+    value = aws_alb.collector-alb.id
+}

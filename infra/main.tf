@@ -29,6 +29,7 @@ module "alb" {
   application_name = var.application_name
   project_name     = var.project_name
   backend_port     = var.backend_port
+  cf_dns           = module.cloudfront.cloudfront_domain
   depends_on = [ module.vpc ]
 }
 
@@ -69,5 +70,7 @@ module "cloudfront" {
   backend_port     = var.backend_port
   bucket_name      = var.bucket_name
   origin_path      = var.origin_path
+  alb_domain       = module.alb.app_dns
+  alb_id           = module.alb.alb_id
   depends_on       = [ module.vpc ]
 }

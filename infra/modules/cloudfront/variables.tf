@@ -28,3 +28,11 @@ variable "bucket_name" {
 variable "origin_path" {
     type = string
 }
+
+variable "alb_domain" {
+    type = string
+}
+
+variable "alb_id" {
+    type = string
+}

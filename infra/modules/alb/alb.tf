@@ -69,6 +69,8 @@ resource "aws_alb_listener" "collector-frontend-listener" {
   region = var.region
   load_balancer_arn = aws_alb.collector-alb.arn
   protocol = "HTTP"
+  # ssl_policy = "ELBSecurityPolicy-2016-08"
+  # certificate_arn = aws_acm_certificate.collector-alb-cert.arn
   port = var.backend_port
   default_action {
     type = "forward"
@@ -77,4 +79,16 @@ resource "aws_alb_listener" "collector-frontend-listener" {
 
 
 }
- 
+
+# resource "aws_acm_certificate" "collector-alb-cert" {
+#   region = var.region
+#   domain_name = var.cf_dns
+#   validation_method = "DNS"
+
+# }
+
+# resource "aws_alb_listener_certificate" "collector-alb-cert" {
+#   region = var.region
+#   listener_arn = aws_alb_listener.collector-frontend-listener.arn
+#   certificate_arn = aws_acm_certificate.collector-cf-cert.arn
+# }

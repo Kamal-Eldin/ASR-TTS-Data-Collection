@@ -83,7 +83,8 @@ jobs:
                 echo "this is the VITE_URL: $VITE_BACKEND_URL"
                 echo "-------------------------------------------"
               env:
-                VITE_BACKEND_URL: http://${{steps.cf.outputs.ecs_dns}}:${{steps.cf.outputs.backend_port}}
+                # VITE_BACKEND_URL: http://${{steps.cf.outputs.ecs_dns}}:${{steps.cf.outputs.backend_port}}
+                VITE_BACKEND_URL: /api
 
             - name: archive static files
               uses: actions/upload-artifact@v4
@@ -145,7 +146,7 @@ jobs:
                 aws s3 sync ${{env.artifact_dir}} ${{env.origin}} --delete
                 echo "-----------------------------------------------------------"
                 echo "checksum the static files @ s3 origin:\n"
-                num_objs=$(aws s3 ls ${{env.bucket}} --summarize | grep -oP '\d' | head -n 1)
+                num_objs=$(aws s3 ls ${{env.origin}} --summarize | grep -oP '\d' | head -n 1)
                 if [[ $num_objs > 1 ]]; then
                   echo "Successfully upload static files!!!"
                 else
