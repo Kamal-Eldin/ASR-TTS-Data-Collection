@@ -78,7 +78,7 @@ jobs:
                 npm install && npm i --save-dev @types/node
                 npm run build
                 echo "-------------------------------------------"
-                echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE 'speech-collector-alb')"
+                echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE '/api')"
                 echo "-------------------------------------------"
                 echo "this is the VITE_URL: $VITE_BACKEND_URL"
                 echo "-------------------------------------------"
