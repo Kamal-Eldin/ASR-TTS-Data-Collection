@@ -1,24 +1,38 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from models.schemas import Settings
 from services.settings_service import SettingsService
 from utils.logging import log_interaction
+from core.dependencies import get_current_user
+from models.database import User
+from database.session import get_db
 
 router = APIRouter(tags=["settings"])
 
 @router.get("/settings/")
-def get_settings():
+async def get_settings(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     return {
-        "storage_path": SettingsService.get_setting("storage_path", "recordings"),
-        "s3_bucket": SettingsService.get_setting("s3_bucket", ""),
-        "huggingface_token": SettingsService.get_setting("huggingface_token", ""),
-        "huggingface_repo": SettingsService.get_setting("huggingface_repo", "")
+        "storage_path": SettingsService.get_user_setting("storage_path", current_user.id, "recordings", db),
+        "s3_bucket": SettingsService.get_user_setting("s3_bucket", current_user.id, "", db),
+        "huggingface_token": SettingsService.get_user_setting("huggingface_token", current_user.id, "", db),
+        "huggingface_repo": SettingsService.get_user_setting("huggingface_repo", current_user.id, "", db)
     }
 
 @router.post("/settings/")
-def set_settings(settings: Settings):
+async def set_settings(
+    settings: Settings,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     for k, v in settings.dict(exclude_unset=True).items():
-        SettingsService.set_setting(k, v)
-    # Ensure storage path exists
-    SettingsService.ensure_storage_path()
-    log_interaction("update_settings", settings.dict(exclude_unset=True))
-    return get_settings() 
+        SettingsService.set_user_setting(k, v, current_user.id, db)
+    # Ensure storage path exists for this user
+    SettingsService.ensure_user_storage_path(current_user.id, db)
+    log_interaction("update_settings", {
+        "user_id": current_user.id,
+        "settings": settings.dict(exclude_unset=True)
+    })
+    return await get_settings(current_user, db) 

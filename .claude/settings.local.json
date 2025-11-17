@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(curl:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInVzZXJuYW1lIjoiYXBpdGVzdCIsImV4cCI6MTc2MzUwMjI1OX0.qpO4x0e2i36Nvi2m8usWL_Qj_RHJkfwWkORJLET9e_c\")",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInVzZXJuYW1lIjoiYXBpdGVzdCIsImV4cCI6MTc2MzUwMjU1N30.hl7nPAjRaK58KxfHG9kmY87efDWsx3B0xhH1-kKerxA\")",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker compose:*)",
+      "Bash(cat:*)",
+      "Bash(docker run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,20 +1,66 @@
-from fastapi import APIRouter, File, UploadFile, Form, HTTPException
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Depends, status
+from sqlalchemy.orm import Session
 from services.recording_service import RecordingService
+from core.dependencies import get_current_user
+from models.database import User, Project
+from database.session import get_db
 
 router = APIRouter(tags=["recordings"])
 
 @router.post("/upload_audio/")
-async def upload_audio(text: str = Form(...), audio: UploadFile = File(...), project_id: int = Form(...)):
-    return RecordingService.upload_audio(text, audio, project_id)
+async def upload_audio(
+    text: str = Form(...),
+    audio: UploadFile = File(...),
+    project_id: int = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verify project ownership
+    project = db.query(Project).filter(
+        Project.id == project_id,
+        Project.user_id == current_user.id
+    ).first()
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found or access denied"
+        )
+
+    return RecordingService.upload_audio(text, audio, project_id, current_user.id)
 
 @router.post("/delete_audio/")
-async def delete_audio(text: str = Form(...), project_id: int = Form(...)):
-    return RecordingService.delete_audio(text, project_id)
+async def delete_audio(
+    text: str = Form(...),
+    project_id: int = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Verify project ownership
+    project = db.query(Project).filter(
+        Project.id == project_id,
+        Project.user_id == current_user.id
+    ).first()
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found or access denied"
+        )
+
+    return RecordingService.delete_audio(text, project_id, current_user.id)
 
 @router.get("/list_recordings/")
-def list_recordings():
-    return RecordingService.list_recordings()
+async def list_recordings(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return RecordingService.list_recordings(current_user.id, db)
 
 @router.get("/recordings/{filename}")
-def get_recording(filename: str):
-    return RecordingService.get_recording(filename) 
+async def get_recording(
+    filename: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return RecordingService.get_recording(filename, current_user.id, db) 

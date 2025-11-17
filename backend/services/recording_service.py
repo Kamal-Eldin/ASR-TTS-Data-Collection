@@ -11,17 +11,18 @@ from fastapi.responses import FileResponse
 
 class RecordingService:
     @staticmethod
-    def upload_audio(text: str, audio_file, project_id: int):
+    def upload_audio(text: str, audio_file, project_id: int, user_id: int):
         """Upload audio recording for a specific prompt"""
         storage_path = SettingsService.get_setting("storage_path", "recordings")
-        
+
         with session_lock:
             db = SessionLocal()
             try:
-                # Find the prompt for this text and project
+                # Find the prompt for this text and project (verify user ownership through prompt)
                 prompt = db.query(Prompt).filter(
                     Prompt.project_id == project_id,
-                    Prompt.text == text
+                    Prompt.text == text,
+                    Prompt.user_id == user_id
                 ).first()
                 
                 if not prompt:
@@ -46,7 +47,8 @@ class RecordingService:
                     text=text,
                     filename=filename,
                     project_id=project_id,
-                    prompt_id=prompt.id
+                    prompt_id=prompt.id,
+                    user_id=user_id
                 )
                 db.add(recording)
                 db.commit()
@@ -69,27 +71,29 @@ class RecordingService:
                 db.close()
 
     @staticmethod
-    def delete_audio(text: str, project_id: int):
+    def delete_audio(text: str, project_id: int, user_id: int):
         """Delete audio recording for a specific prompt"""
         storage_path = SettingsService.get_setting("storage_path", "recordings")
-        
+
         with session_lock:
             db = SessionLocal()
             try:
-                # Find the prompt for this text and project
+                # Find the prompt for this text and project (verify user ownership)
                 prompt = db.query(Prompt).filter(
                     Prompt.project_id == project_id,
-                    Prompt.text == text
+                    Prompt.text == text,
+                    Prompt.user_id == user_id
                 ).first()
                 
                 if not prompt:
                     raise HTTPException(status_code=404, detail="Prompt not found for this project")
                 
-                # Find and delete recording
+                # Find and delete recording (ensure it belongs to the user)
                 recording = db.query(Recording).filter(
                     Recording.text == text,
                     Recording.project_id == project_id,
-                    Recording.prompt_id == prompt.id
+                    Recording.prompt_id == prompt.id,
+                    Recording.user_id == user_id
                 ).first()
                 
                 if not recording:
@@ -118,16 +122,17 @@ class RecordingService:
                 db.close()
 
     @staticmethod
-    def get_project_recordings(project_id: int):
+    def get_project_recordings(project_id: int, user_id: int):
         """Get all recordings for a specific project"""
         with session_lock:
             db = SessionLocal()
             try:
-                # Get all recordings for this project with prompt information
+                # Get all recordings for this project with prompt information (filtered by user)
                 recordings = db.query(Recording).join(Prompt, Recording.prompt_id == Prompt.id).options(
                     joinedload(Recording.prompt)
                 ).filter(
-                    Recording.project_id == project_id
+                    Recording.project_id == project_id,
+                    Recording.user_id == user_id
                 ).order_by(Prompt.order_index).all()
                 
                 result = []
@@ -145,19 +150,45 @@ class RecordingService:
                 db.close()
 
     @staticmethod
-    def list_recordings():
-        """List all recording files"""
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
-        files = [f for f in os.listdir(storage_path) if os.path.isfile(os.path.join(storage_path, f))]
-        return {"recordings": files}
+    def list_recordings(user_id: int, db: Session):
+        """List all recordings for a specific user"""
+        try:
+            # Get all recordings for this user from database
+            recordings = db.query(Recording).filter(
+                Recording.user_id == user_id
+            ).all()
+
+            result = []
+            for rec in recordings:
+                result.append({
+                    "id": rec.id,
+                    "text": rec.text,
+                    "filename": rec.filename,
+                    "project_id": rec.project_id,
+                    "prompt_id": rec.prompt_id,
+                    "recorded_at": rec.recorded_at.isoformat() + 'Z' if rec.recorded_at else None
+                })
+
+            return {"recordings": result}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to list recordings: {str(e)}")
 
     @staticmethod
-    def get_recording(filename: str):
-        """Get a specific recording file"""
+    def get_recording(filename: str, user_id: int, db: Session):
+        """Get a specific recording file (only if owned by user)"""
+        # First verify that this recording belongs to the user
+        recording = db.query(Recording).filter(
+            Recording.filename == filename,
+            Recording.user_id == user_id
+        ).first()
+
+        if not recording:
+            raise HTTPException(status_code=404, detail="Recording not found or access denied")
+
         storage_path = SettingsService.get_setting("storage_path", "recordings")
         file_path = os.path.join(storage_path, filename)
-        
+
         if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Recording not found")
-        
+            raise HTTPException(status_code=404, detail="Recording file not found on disk")
+
         return FileResponse(file_path, media_type="audio/wav") 
