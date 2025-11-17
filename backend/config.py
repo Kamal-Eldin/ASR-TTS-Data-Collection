@@ -67,7 +67,8 @@ class AppConfig:
     STORAGE_PATH = os.getenv('STORAGE_PATH', 'data/recordings')
     
     # CORS Configuration
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000') # all other CORS localhost ports of 2-4 digits are allowed in main via a regex exp
+    CORS_ORIGINS: str = os.getenv(key='CORS_ORIGINS',default= 'http://localhost:3000')
+    CORS_REGEX: str = os.getenv(key="CORS_REGEX", default=r"^https?://(localhost:\d{2,4}|[\w.-]+\.cloudfront\.net)$" )
     
     # Export Timeouts
     HF_EXPORT_TIMEOUT = int(os.getenv('HF_EXPORT_TIMEOUT', 300))
