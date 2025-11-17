@@ -114,6 +114,7 @@ locals {
                 
                 {name= "CORS_ORIGINS", value="https://${local.CORS_ORIGINS}, http://${local.CORS_ORIGINS}"},
                 {name= "CORS_REGEX"  , value=var.cors_regex},
+                {name= "ROUTER_PREFIX"  , value=var.router_prefix},
                 {name= "STORAGE_PATH", value="recordings"}
 
 

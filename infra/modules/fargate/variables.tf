@@ -117,3 +117,8 @@ variable "cors_regex" {
     type = string
     default = "^https?://(localhost:\\d{2,4}|[\\w.-]+\\.cloudfront\\.net)$"
 }
+
+variable "router_prefix" {
+    type = string
+    default = "/api"
+}

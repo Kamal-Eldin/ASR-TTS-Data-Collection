@@ -3,9 +3,9 @@ name: "deploy-cloudfront"
     push:
         branches: 
         - "release/*"
-        # paths:
-        #   - 'frontend/**'
-        #   - '.github/workflows/cloudfront.yaml'
+        paths:
+          - 'frontend/**'
+          - '.github/workflows/cloudfront.yaml'
     workflow_call: 
     workflow_run: 
       workflows:
@@ -146,7 +146,7 @@ jobs:
                 aws s3 sync ${{env.artifact_dir}} ${{env.origin}} --delete
                 echo "-----------------------------------------------------------"
                 echo "checksum the static files @ s3 origin:\n"
-                num_objs=$(aws s3 ls ${{env.origin}} --summarize | grep -oP '\d' | head -n 1)
+                num_objs=$(aws s3 ls ${{env.origin}}/ --summarize | grep -oP '\d' | head -n 1)
                 if [[ $num_objs > 1 ]]; then
                   echo "Successfully upload static files!!!"
                 else
