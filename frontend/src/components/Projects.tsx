@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const BACKEND_URL = 'http://localhost:8500';
+
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 interface Project {
   id: number;
   name: string;

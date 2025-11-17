@@ -4,15 +4,7 @@ include .env.template
 create_project:
 	curl -X POST -d "id=1&project_name=$(project_name)&prompts_text=$(prompts)&is_rtl=false" http://localhost:8500/create_project/
 
-update_urls:
-	echo "writing BACKEND_URL var from environment to frontend components"
-	sed -i "s|const BACKEND_URL.*;|const BACKEND_URL = '${BACKEND_URL}';|" \
-		/workspaces/Voice-Dataset-Collection/frontend/src/components/Projects.tsx \
-		/workspaces/Voice-Dataset-Collection/frontend/src/components/Recording.tsx \
-		/workspaces/Voice-Dataset-Collection/frontend/src/components/Settings.tsx
-
-
-deploy: update_urls
+deploy:
 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
 	echo "placing env vars from project.conf into compose .env file"
 	cp ./project.conf ./.env
@@ -21,4 +13,4 @@ deploy: update_urls
 # 	docker compose down
 # 	echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--."
 	echo "deploying compose services and network..watch mode enabled for frontend & backend directories"
-	docker compose up --build -w
+	docker compose up --build --no-deps --force-recreate -w

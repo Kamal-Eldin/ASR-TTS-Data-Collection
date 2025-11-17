@@ -13,7 +13,10 @@ class DatabaseConfig:
     MYSQL_PORT = int(os.getenv('MYSQL_PORT', 3306))
     MYSQL_USER = os.getenv('MYSQL_USER', 'root')
     MYSQL_PASSWORD_FILE = os.getenv('MYSQL_PASSWORD_FILE', '')
+    MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD', '')
     MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'tts_dataset_generator')
+    AWS_ACCESS_KEY_ID_FILE= os.getenv('AWS_ACCESS_KEY_ID_FILE', '')
+    AWS_SECRET_ACCESS_KEY_FILE= os.getenv('AWS_SECRET_ACCESS_KEY_FILE', '')
     
     # SQLite Configuration (default)
     SQLITE_DATABASE = os.getenv('SQLITE_DATABASE', 'data/tts_dataset.db')
@@ -21,9 +24,17 @@ class DatabaseConfig:
     @classmethod
     def get_db_password(cls):
         valid_filepath = os.path.exists(cls.MYSQL_PASSWORD_FILE)
-        assert valid_filepath, f"MYSQL_PASSWORD_FILE cannot be found neither at {cls.MYSQL_PASSWORD_FILE} nor defaults"
-        with open(cls.MYSQL_PASSWORD_FILE, 'r') as file:
-            return file.read() 
+        try:
+            assert valid_filepath, f"MYSQL_PASSWORD_FILE cannot be found neither at {cls.MYSQL_PASSWORD_FILE} nor defaults"
+            with open(cls.MYSQL_PASSWORD_FILE, 'r') as file:
+                return file.read() 
+        except:
+            try:
+                assert cls.MYSQL_PASSWORD, f"MYSQL_PASSWORD not set.."
+                return cls.MYSQL_PASSWORD
+            except:
+                print("failed to find user set MYSQL_PASSWORD, resorting to default value 'admin'")
+                return os.getenv("MYSQL_PASSWORD", 'admin')
          
     @classmethod
     def get_database_url(cls):
@@ -56,7 +67,9 @@ class AppConfig:
     STORAGE_PATH = os.getenv('STORAGE_PATH', 'data/recordings')
     
     # CORS Configuration
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174').split(',')
+    CORS_ORIGINS: str = os.getenv(key='CORS_ORIGINS',default= 'http://localhost:3000')
+    CORS_REGEX: str = os.getenv(key="CORS_REGEX", default=r"^https?://(localhost:\d{2,4}|[\w.-]+\.cloudfront\.net)$" )
+    ROUTER_PREFIX: str = os.getenv('ROUTER_PREFIX', '')
     
     # Export Timeouts
     HF_EXPORT_TIMEOUT = int(os.getenv('HF_EXPORT_TIMEOUT', 300))

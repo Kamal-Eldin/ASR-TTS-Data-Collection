@@ -22,7 +22,8 @@ app = FastAPI(title="TTS Dataset Generator", version="1.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=AppConfig.CORS_ORIGINS,
+    allow_origin_regex=AppConfig.CORS_REGEX,
+    # allow_origins=AppConfig.CORS_ORIGINS.split(','),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,14 +38,22 @@ migrate_schema()
 # Ensure storage directory exists
 SettingsService.ensure_storage_path()
 
-# Include API routers
-app.include_router(projects_router)
-app.include_router(recordings_router)
-app.include_router(settings_router)
-app.include_router(exports_router)
+# Include API routers with ROUTER_PREFIX        # for cloudfront ALB routing
+app.include_router(projects_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(recordings_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(settings_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(exports_router, prefix= AppConfig.ROUTER_PREFIX )
+
+# Health check endpoint (must be before static mount)
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    print(f"Set CORS_ORIGINS: {AppConfig.CORS_ORIGINS}")
+    uvicorn.run(app, host="0.0.0.0", port=8500) 
