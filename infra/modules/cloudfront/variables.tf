@@ -36,3 +36,8 @@ variable "alb_domain" {
 variable "alb_id" {
     type = string
 }
+
+variable "lambda_dns" {
+    type = string
+}
+

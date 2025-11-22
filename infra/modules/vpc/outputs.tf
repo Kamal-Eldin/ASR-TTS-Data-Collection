@@ -22,6 +22,10 @@ output "vpc_id"{
 output "secgrp_id" {
     value = aws_security_group.alb-secgrp.id
 }
+output "lambda_secgrp_id" {
+    value = aws_security_group.lambda-secgrp.id
+}
+
 
 output "subnets_ids" {
     value = [aws_subnet.collector-subnet-1.id, aws_subnet.collector-subnet-2.id]

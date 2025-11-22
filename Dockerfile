@@ -24,6 +24,7 @@ RUN cd frontend && npm run build
 
 # Stage 2: Build the Python backend and create the final image
 FROM python:3.11-slim
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1 /lambda-adapter /opt/extensions/lambda-adapter
 
 WORKDIR /app/backend
 
