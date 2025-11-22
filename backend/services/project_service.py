@@ -4,6 +4,7 @@ from models.database import Project, Prompt
 from database.connection import SessionLocal
 from database.session import session_lock
 from utils.logging import logger
+from config import AppConfig
 
 
 class ProjectService:
@@ -133,7 +134,7 @@ class ProjectService:
         from models.database import Recording
         from utils.file_utils import delete_audio_file
         
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         
         with session_lock:
             db = SessionLocal()

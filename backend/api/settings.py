@@ -2,16 +2,17 @@ from fastapi import APIRouter, HTTPException
 from models.schemas import Settings
 from services.settings_service import SettingsService
 from utils.logging import log_interaction
+from config import AppConfig
 
 router = APIRouter(tags=["settings"])
 
 @router.get("/settings/")
 def get_settings():
     return {
-        "storage_path": SettingsService.get_setting("storage_path", "recordings"),
+        "storage_path": SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH),
         "s3_bucket": SettingsService.get_setting("s3_bucket", ""),
-        "huggingface_token": SettingsService.get_setting("huggingface_token", ""),
-        "huggingface_repo": SettingsService.get_setting("huggingface_repo", "")
+        "huggingface_token": SettingsService.get_setting("huggingface_token", AppConfig.HUGGINGFACE_TOKEN),
+        "huggingface_repo": SettingsService.get_setting("huggingface_repo", AppConfig.HUGGINGFACE_REPO)
     }
 
 @router.post("/settings/")

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from models.database import Setting
 from database.connection import SessionLocal
 from database.session import session_lock
+from config import AppConfig
 
 class SettingsService:
     @staticmethod
@@ -35,7 +36,7 @@ class SettingsService:
     @staticmethod
     def ensure_storage_path():
         """Ensure storage directory exists"""
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         print(storage_path)
         os.makedirs(storage_path, exist_ok=True)
         return storage_path 
