@@ -3,7 +3,7 @@ locals {
     CORS_ORIGINS = ["http://${var.cf_dns}", "https://${var.cf_dns}" ]
 }
 
-resource "aws_cloudwatch_log_group" "collector-ecs-watch-grp" {
+resource "aws_cloudwatch_log_group" "collector-backend-watch-grp" {
     region = var.region
     name = "${var.application_name}-watch-grp"
     log_group_class = "STANDARD"
@@ -26,14 +26,15 @@ resource "aws_iam_role_policy_attachment" "lambda-ecrpolicy-attach" {
     role = aws_iam_role.lambda-execution-role.name
 }
 
-# resource "aws_iam_policy" "lambda-net-interface-policy" {
-#     policy = data.aws_iam_policy_document.net-interface-policy-doc.json
-#     name = "${var.application_name}-lambda-network-policy"
-# }
 
 resource "aws_iam_role_policy_attachment" "lambda-net-policy-attach" {
     # policy_arn = aws_iam_policy.lambda-net-interface-policy.arn
     policy_arn = data.aws_iam_policy.lambda-vpc-access-policy.arn
+    role = aws_iam_role.lambda-execution-role.name
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-efs-policy-attach" {
+    policy_arn = data.aws_iam_policy.lambda-efs-access.arn
     role = aws_iam_role.lambda-execution-role.name
 }
 
@@ -55,11 +56,6 @@ resource "aws_lambda_function" "speech-collector-lambda" {
     package_type = "Image"
     role= aws_iam_role.lambda-execution-role.arn
     image_uri = "${var.image_registery}/${var.backend_image}:${var.backend_image_tag}"
-
-    # image_config {
-    #   # see if required
-    # }
-
     memory_size = 4096
 
     architectures = ["x86_64"] # see build an arm64 for better pricing
@@ -80,9 +76,9 @@ resource "aws_lambda_function" "speech-collector-lambda" {
             "S3_EXPORT_TIMEOUT"     = "300"
             "HUGGINGFACE_REPO"      = "feth-data-force"
                             
-            "ROUTER_PREFIX"  = ""
+            # "ROUTER_PREFIX"  = "/api"
             "CORS_REGEX"     = var.cors_regex
-            "STORAGE_PATH"   = "/tmp/recordings"
+            "STORAGE_PATH"   = "${var.root_dir}/recordings"
             "CORS_ORIGINS"   = "https://${var.cf_dns}, http://${var.cf_dns}"
             
             "HUGGINGFACE_TOKEN"= data.aws_ssm_parameter.collector-hf-token.value
@@ -99,13 +95,19 @@ resource "aws_lambda_function" "speech-collector-lambda" {
 
     logging_config {
         log_format = "JSON"
-        log_group =aws_cloudwatch_log_group.collector-ecs-watch-grp.name
+        log_group =aws_cloudwatch_log_group.collector-backend-watch-grp.name
         system_log_level = "DEBUG"
         application_log_level = "TRACE" 
     }
     vpc_config {
-        security_group_ids = [var.secgrp_id ]
-        subnet_ids = var.subnets_ids
+        security_group_ids = [var.lambda-secgrp_id ]
+        subnet_ids = [var.subnets_ids[0]]
     }
-    timeout = 180  # minimum running time in secs 
+
+    file_system_config {
+      arn = var.efs_access_arn
+      local_mount_path = var.root_dir
+    }
+
+    timeout = 180  # 3 mins; minimum running time in secs 
 }

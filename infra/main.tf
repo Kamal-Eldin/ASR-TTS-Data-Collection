@@ -1,8 +1,22 @@
 module "vpc" {
   source = "./modules/vpc"
 }
+
+module "efs" {
+  source = "./modules/efs"
+  region           = var.region
+  aws_profile      = var.aws_profile
+  application_name = var.application_name
+  project_name     = var.project_name
+  subnets_ids      = module.vpc.subnets_ids
+  efs-secgrp_id    = module.vpc.efs_secgrp_id
+
+  depends_on       = [ module.vpc ]
+}
+
 module "lambda" {
   source = "./modules/lambda"
+  cf_dns           = "localhost:8500"
   region           = var.region
   aws_profile      = var.aws_profile
   application_name = var.application_name
@@ -11,11 +25,11 @@ module "lambda" {
   backend_port     = var.backend_port
   db_host          = module.aurora.db_host
   db_name          = module.aurora.db_name
-  secgrp_id        = module.vpc.lambda_secgrp_id
+  lambda-secgrp_id = module.vpc.lambda_secgrp_id
   subnets_ids      = module.vpc.subnets_ids
-  cf_dns           = "localhost:8500"
-  depends_on       = [ module.vpc, module.ssm, module.aurora ]
+  efs_access_arn   = module.efs.efs_access_arn
   
+  depends_on       = [ module.vpc, module.ssm, module.aurora, module.efs ]
 }
 
 # module "fargate" {
@@ -74,6 +88,7 @@ module "aurora" {
   db_secgrp_id         = module.vpc.db_secgrp_id
   db_subnet_grp_name   = module.vpc.db_subnet_grp_name
   db_port              = var.db_port
+  
   depends_on           = [ module.vpc, module.ssm ]
 }
 

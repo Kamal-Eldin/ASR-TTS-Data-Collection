@@ -27,7 +27,7 @@ class ExportService:
     @classmethod
     def export_to_s3(cls, payload: dict = None):
         """Export recordings to Amazon S3"""
-        bucket: str = SettingsService.get_setting("s3_bucket", "")
+        bucket: str = SettingsService.get_setting("s3_bucket", AppConfig.BUCKET)
         storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         s3:client = cls.get_s3_client()
         print(s3)

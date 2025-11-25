@@ -1,3 +1,4 @@
+from logging import config
 import os
 from sqlalchemy.orm import Session
 from models.database import Setting
@@ -7,14 +8,18 @@ from config import AppConfig
 
 class SettingsService:
     @staticmethod
-    def get_setting(key: str, default: str = "") -> str:
+    def get_setting(key: str ,default: str = "") -> str:
         with session_lock:
             db = SessionLocal()
             print(f"this is the db session {db}")
             try:
                 setting = db.query(Setting).filter(Setting.key == key).first()
-                print(f"Setting db query result: {setting}")
-                return setting.value if setting else default
+                print(f">> DB Check: Setting db query result: {setting}")
+                assert setting.value, AssertionError
+                return setting.value
+            except:
+                print(f">> No db entry found for settings.storage_path, falling back to env var  >> {default}")
+                return default
             finally:
                 db.close()
 
@@ -36,7 +41,7 @@ class SettingsService:
     @staticmethod
     def ensure_storage_path():
         """Ensure storage directory exists"""
-        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
-        print(storage_path)
+        storage_path = SettingsService.get_setting("storage_path" ,default= AppConfig.STORAGE_PATH)
+        print(f">> Retrieved storage path at {storage_path}")
         os.makedirs(storage_path, exist_ok=True)
         return storage_path 

@@ -58,7 +58,7 @@ variable "backend_image_tag" {
     description = "image tag for the backend container"
 }
 
-variable "secgrp_id" {
+variable "lambda-secgrp_id" {
     type = string
 }
 
@@ -67,5 +67,15 @@ variable "subnets_ids" {
 }
 
 variable "cf_dns" {
+    type = string
+}
+
+variable "root_dir" {
+    type = string
+    default = "/mnt/data"
+    description = "root dir for EFS mount and consequently STORAGE_PATH env var"
+}
+
+variable "efs_access_arn" {
     type = string
 }

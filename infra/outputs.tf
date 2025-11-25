@@ -20,3 +20,19 @@ output "origin_path" {
 output "lambda_url" {
  value = module.lambda.lambda_dns
 }
+
+output "lambda_vpc" {
+  value = module.lambda.lambda_vpc
+}
+output "subnets_ids" {
+    value = module.vpc.subnets_ids
+}
+output "efs-AZ" {
+  value = module.efs.efs-AZ
+}
+output "subnet_1-AZ" {
+    value = module.vpc.subnet_1-AZ
+}
+output "subnet_2-AZ" {
+    value = module.vpc.subnet_2-AZ
+}

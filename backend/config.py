@@ -9,8 +9,8 @@ class AppConfig:
     """Application configuration class"""
     
     # Storage Configuration
-    STORAGE_PATH = os.getenv('STORAGE_PATH', '/tmp/recordings')
-    
+    STORAGE_PATH= os.getenv('STORAGE_PATH', default="/tmp/recordings")
+    BUCKET: str = os.getenv('BUCKET', default="s3://speech-collector")
     # CORS Configuration
     CORS_ORIGINS: str = os.getenv(key='CORS_ORIGINS',default= 'http://localhost:3000')
     CORS_REGEX: str = os.getenv(key="CORS_REGEX", default=r"^https?://(localhost:\d{2,4}|[\w.-]+\.cloudfront\.net)$" )
@@ -28,7 +28,8 @@ class AppConfig:
     # Hugging Face Configuration
     HUGGINGFACE_TOKEN_FILE: str = os.getenv('HUGGINGFACE_TOKEN_FILE', '/run/secrets/hf_token')
     HUGGINGFACE_REPO: str = os.getenv('HUGGINGFACE_REPO', '')      
-    HUGGINGFACE_TOKEN: str = os.getenv('HUGGINGFACE_TOKEN', '')   
+    HUGGINGFACE_TOKEN: str = os.getenv('HUGGINGFACE_TOKEN', '')
+
 
     @staticmethod
     def get_secret(secret_path: str, env_key:str | None, default: str|None) -> str | None:
