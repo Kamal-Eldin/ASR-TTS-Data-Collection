@@ -1,8 +1,4 @@
 
-locals {
-    CORS_ORIGINS = ["http://${var.cf_dns}", "https://${var.cf_dns}" ]
-}
-
 resource "aws_cloudwatch_log_group" "collector-backend-watch-grp" {
     region = var.region
     name = "${var.application_name}-watch-grp"
@@ -42,13 +38,16 @@ resource "aws_lambda_function_url" "speech-collector-lambda-url" {
     region = var.region
     function_name = aws_lambda_function.speech-collector-lambda.function_name
     authorization_type = "NONE"
-    cors {
-      allow_origins = local.CORS_ORIGINS 
-      allow_methods = [ "GET", "POST", "DELETE", "PUT", "PATCH" ]
-      
-    }
-  
+
+    # deactivate, as CORS is managed internally via fastapi via CORS_REGEX
+    # this config block occludes backends's fastapi CORS settings
+    #
+    # cors {
+    #   allow_origins = local.CORS_ORIGINS  
+    #   allow_methods = [ "GET", "POST", "DELETE", "PUT", "PATCH" ]
+    # }
 }
+  
 
 resource "aws_lambda_function" "speech-collector-lambda" {
     region = var.region
@@ -78,8 +77,8 @@ resource "aws_lambda_function" "speech-collector-lambda" {
                             
             "ROUTER_PREFIX"         = var.backend_route # empty string for single CF origin | /api for origin group failover setup
             "CORS_REGEX"            = var.cors_regex
+            "CORS_ORIGINS"          = ""  # managed by CORS_REGEX
             "STORAGE_PATH"          = "${var.root_dir}/recordings"
-            "CORS_ORIGINS"          = "https://${var.cf_dns}, http://${var.cf_dns}"
             
             "HUGGINGFACE_TOKEN"= data.aws_ssm_parameter.collector-hf-token.value
             "MYSQL_PASSWORD"   = data.aws_ssm_parameter.collector-db-root-pass.value

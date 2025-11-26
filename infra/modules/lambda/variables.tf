@@ -27,7 +27,7 @@ variable "bucket_name" {
 
 variable "cors_regex" {
     type = string
-    default = "^https?://(localhost:\\d{2,4}|[\\w.-]+\\.cloudfront\\.net)$"
+    default = "^https?://(localhost:\\d+|[\\w-]+\\.cloudfront\\.net)$"
 }
 
 variable "router_prefix" {
@@ -82,5 +82,5 @@ variable "efs_access_arn" {
 
 variable "backend_route" {
     type = string
-    default = ""  # /api if backend is ALB is backend
+    default = "" 
 }

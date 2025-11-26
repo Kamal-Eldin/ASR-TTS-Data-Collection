@@ -13,7 +13,7 @@ class AppConfig:
     BUCKET: str = os.getenv('BUCKET', default="s3://speech-collector")
     # CORS Configuration
     CORS_ORIGINS: str = os.getenv(key='CORS_ORIGINS',default= 'http://localhost:3000')
-    CORS_REGEX: str = os.getenv(key="CORS_REGEX", default=r"^https?://(localhost:\d{2,4}|[\w.-]+\.cloudfront\.net)$" )
+    CORS_REGEX: str = os.getenv(key="CORS_REGEX", default=r"^https?://(localhost:\d+|[\w-]+\.cloudfront\.net)$" )
     ROUTER_PREFIX: str = os.getenv('ROUTER_PREFIX', '')
     
     # Export Timeouts
