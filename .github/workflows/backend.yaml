@@ -19,8 +19,8 @@ jobs:
     deploy-backend:
         runs-on: ubuntu-22.04
         outputs:
-          cf_dns: ${{ steps.deploy.outputs.cf_dns}}
-          ecs_dns: ${{ steps.deploy.outputs.ecs_dns}}
+          cf_dns      : ${{ steps.deploy.outputs.cf_dns}}
+          backend_dns : ${{ steps.deploy.outputs.backend_dns}}
         defaults:
           run:
             working-directory: ./infra
@@ -47,9 +47,9 @@ jobs:
                 echo "Deploying terraform systems......................."
                 terraform apply --auto-approve
                 echo "-------------------------------------------"
-                echo "Writing ALB DNS to ecs_dns git output"
-                echo "ecs_dns=terraform output ecs_dns" >> "$GITHUB_OUTPUT"
-                echo "cf_dns=terraform output cf_dns" >> "$GITHUB_OUTPUT"
+                echo "Writing backend domain to backend_dns git output"
+                echo "backend_dns=terraform output backend_dns"   >> "$GITHUB_OUTPUT"
+                echo "cf_dns=terraform output cf_dns"             >> "$GITHUB_OUTPUT"
                 echo "-------------------------------------------"
 
             - name: DNS
@@ -58,7 +58,7 @@ jobs:
                 set +x
                 terraform refresh &> /dev/null
                 echo "backend url at:"
-                terraform output ecs_dns
+                terraform output backend_dns
                 echo "-------------------------------------------"
                 echo "frontend url at:"
                 terraform output cf_dns

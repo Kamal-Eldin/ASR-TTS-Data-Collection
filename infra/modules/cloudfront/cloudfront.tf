@@ -1,9 +1,9 @@
 locals {
-  bucket_name= "${var.application_name}-s3"
-  frontend_origin= "${var.application_name}-s3-origin"
-  primary_backend_origin= "${var.application_name}-alb-origin"
-  failover_backend_origin= "${var.application_name}-lambda-origin"
-  origin_grp_id= "${var.application_name}-origin-group"
+  bucket_name             = "${var.application_name}-s3"
+  frontend_origin         = "${var.application_name}-s3-origin"
+  primary_backend_origin  = "${var.application_name}-alb-origin"
+  failover_backend_origin = "${var.application_name}-lambda-origin"
+  origin_grp_id           = "${var.application_name}-origin-group"
 }
 
 # the origin bucket
@@ -43,17 +43,19 @@ resource "aws_cloudfront_distribution" "collector-front" {
       origin_access_control_id = aws_cloudfront_origin_access_control.collector-oac.id
       origin_path = var.origin_path
     }
-    origin {
-      domain_name = var.lambda_dns
-      origin_id = local.failover_backend_origin
-      custom_origin_config {
-        origin_protocol_policy = "http-only"
-        origin_ssl_protocols = ["TLSv1.2"]
-        http_port = var.backend_port
-        ip_address_type = "ipv4"
-        https_port = 443
-      }
-    }
+
+    # origin {
+    #   domain_name = replace(var.lambda_dns, "/(https?://)|(/$)/", "")
+    #   origin_id = local.failover_backend_origin
+    #   custom_origin_config {
+    #     origin_protocol_policy = "https-only"
+    #     origin_ssl_protocols = ["TLSv1.2"]
+    #     http_port = var.backend_port
+    #     ip_address_type = "ipv4"
+    #     https_port = 443
+    #   } 
+    # }
+
     default_root_object = "index.html"
     price_class = "PriceClass_200"
     restrictions {
@@ -73,14 +75,14 @@ resource "aws_cloudfront_distribution" "collector-front" {
 
     }
 
-    ordered_cache_behavior {
-        path_pattern = "/api/*"
-        allowed_methods = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
-        cached_methods = [ "GET", "HEAD" ]
-        viewer_protocol_policy = "allow-all"
-        target_origin_id = local.failover_backend_origin
-        cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # CachingDisabled (0 minTTL, 0 maxTTL)
-    }
+    # ordered_cache_behavior {
+    #     path_pattern = "/api/*"
+    #     allowed_methods = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
+    #     cached_methods = [ "GET", "HEAD" ]
+    #     viewer_protocol_policy = "allow-all"
+    #     target_origin_id = local.failover_backend_origin
+    #     cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # CachingDisabled (0 minTTL, 0 maxTTL)
+    # }
     viewer_certificate {
       cloudfront_default_certificate = true
     }

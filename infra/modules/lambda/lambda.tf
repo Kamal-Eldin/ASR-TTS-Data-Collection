@@ -76,10 +76,10 @@ resource "aws_lambda_function" "speech-collector-lambda" {
             "S3_EXPORT_TIMEOUT"     = "300"
             "HUGGINGFACE_REPO"      = "feth-data-force"
                             
-            # "ROUTER_PREFIX"  = "/api"
-            "CORS_REGEX"     = var.cors_regex
-            "STORAGE_PATH"   = "${var.root_dir}/recordings"
-            "CORS_ORIGINS"   = "https://${var.cf_dns}, http://${var.cf_dns}"
+            "ROUTER_PREFIX"         = var.backend_route # empty string for single CF origin | /api for origin group failover setup
+            "CORS_REGEX"            = var.cors_regex
+            "STORAGE_PATH"          = "${var.root_dir}/recordings"
+            "CORS_ORIGINS"          = "https://${var.cf_dns}, http://${var.cf_dns}"
             
             "HUGGINGFACE_TOKEN"= data.aws_ssm_parameter.collector-hf-token.value
             "MYSQL_PASSWORD"   = data.aws_ssm_parameter.collector-db-root-pass.value

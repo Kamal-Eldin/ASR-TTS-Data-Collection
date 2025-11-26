@@ -29,7 +29,7 @@ module "lambda" {
   subnets_ids      = module.vpc.subnets_ids
   efs_access_arn   = module.efs.efs_access_arn
   
-  depends_on       = [ module.vpc, module.ssm, module.aurora, module.efs ]
+  depends_on       = [ module.vpc, module.ssm, module.aurora, module.efs]
 }
 
 # module "fargate" {
@@ -88,21 +88,21 @@ module "aurora" {
   db_secgrp_id         = module.vpc.db_secgrp_id
   db_subnet_grp_name   = module.vpc.db_subnet_grp_name
   db_port              = var.db_port
-  
+
   depends_on           = [ module.vpc, module.ssm ]
 }
 
-# module "cloudfront" {
-#   source           = "./modules/cloudfront"
-#   region           = var.region
-#   aws_profile      = var.aws_profile
-#   application_name = var.application_name
-#   project_name     = var.project_name
-#   backend_port     = var.backend_port
-#   bucket_name      = var.bucket_name
-#   origin_path      = var.origin_path
-#   alb_domain       = module.alb.app_dns
-#   alb_id           = module.alb.alb_id
-#   lambda_dns       = module.lambda.lambda_dns
-#   depends_on       = [ module.vpc ]
-# }
+module "cloudfront" {
+  source           = "./modules/cloudfront"
+  region           = var.region
+  aws_profile      = var.aws_profile
+  application_name = var.application_name
+  project_name     = var.project_name
+  backend_port     = var.backend_port
+  bucket_name      = var.bucket_name
+  origin_path      = var.origin_path
+  # alb_domain       = module.alb.app_dns
+  # alb_id           = module.alb.alb_id
+  lambda_dns       = module.lambda.lambda_dns
+  depends_on       = [ module.vpc, module.lambda ]
+}

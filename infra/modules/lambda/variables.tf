@@ -79,3 +79,8 @@ variable "root_dir" {
 variable "efs_access_arn" {
     type = string
 }
+
+variable "backend_route" {
+    type = string
+    default = ""  # /api if backend is ALB is backend
+}
