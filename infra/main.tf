@@ -1,3 +1,15 @@
+module "route" {
+  providers = {
+    aws = aws.alias-provider # forces using us-east-1
+  }
+  source = "./modules/route"
+  apex_zone = var.apex_zone
+  cf_dns = module.cloudfront.cloudfront_domain
+  cf_url = module.cloudfront.url
+  cf_zone = module.cloudfront.cf_zone
+}
+
+
 module "vpc" {
   source = "./modules/vpc"
 }
@@ -104,5 +116,7 @@ module "cloudfront" {
   # alb_domain       = module.alb.app_dns
   # alb_id           = module.alb.alb_id
   lambda_dns       = module.lambda.lambda_dns
-  depends_on       = [ module.vpc, module.lambda ]
+  apex_zone        = var.apex_zone
+  cf_validation_arn = module.route.cf_validation_arn
+  depends_on       = [ module.vpc, module.lambda]
 }

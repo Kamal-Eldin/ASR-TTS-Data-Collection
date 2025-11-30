@@ -27,7 +27,7 @@ variable "bucket_name" {
 
 variable "cors_regex" {
     type = string
-    default = "^https?://(localhost:\\d+|[\\w-]+\\.cloudfront\\.net)$"
+    default = "^https?://(localhost:\\d+|[\\w-]+\\.cloudfront\\.net.?$|\\w*.?voiceforce.click.?$)"
 }
 
 variable "router_prefix" {

@@ -40,3 +40,7 @@ output "subnet_2-AZ" {
 output "backend_route" {
   value = module.lambda.backend_route
 }
+
+output "app_alias" {
+  value = module.route.app_alias
+}

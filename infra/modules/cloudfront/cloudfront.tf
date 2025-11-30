@@ -20,22 +20,7 @@ resource "aws_s3_bucket" "collector-s3" {
 }
 
 resource "aws_cloudfront_distribution" "collector-front" {
-    aliases = [  ]
-
-    # origin_group {
-    #     origin_id = local.origin_grp_id
-    #     failover_criteria {
-    #       status_codes = [503, 504 ] # 503 Service Unavailable, 504 Gateway Timeout 
-         
-    #     }
-    #     member {
-    #       origin_id = local.primary_backend_origin
-    #     }
-    #     member {
-    #       origin_id = local.failover_backend_origin
-    #   }
-
-    # }
+    aliases = [ var.apex_zone ]
     
     origin {
       domain_name = aws_s3_bucket.collector-s3.bucket_domain_name
@@ -67,10 +52,10 @@ resource "aws_cloudfront_distribution" "collector-front" {
     default_cache_behavior {
         allowed_methods = ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
         cached_methods = [ "GET", "HEAD" ]
-        viewer_protocol_policy = "allow-all"
+        viewer_protocol_policy = "redirect-to-https"
         target_origin_id = local.frontend_origin
-        # cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
-        cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"  # CachingDisabled (0 minTTL, 0 maxTTL)
+        cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
+        # cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"  # CachingDisabled (0 minTTL, 0 maxTTL)
         # default_ttl = 5
 
     }
@@ -84,11 +69,19 @@ resource "aws_cloudfront_distribution" "collector-front" {
     #     cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # CachingDisabled (0 minTTL, 0 maxTTL)
     # }
     viewer_certificate {
-      cloudfront_default_certificate = true
+      cloudfront_default_certificate = false # disabled, mutually exclusive with acm_certificate_arn
+      acm_certificate_arn = var.cf_validation_arn
+      ssl_support_method = "sni-only"
     }
     enabled = true
 }
 
+
+# data "aws_acm_certificate" "url-cert" {
+#     region = "us-east-1"
+#     domain = "*.${var.apex_zone}"
+#     statuses = [ "ISSUED" ]
+# }
 
 data "aws_iam_policy_document" "bucket-policy-body" {
     statement {

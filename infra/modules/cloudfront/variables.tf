@@ -41,3 +41,11 @@ variable "lambda_dns" {
     type = string
 }
 
+variable "apex_zone" {
+    type = string
+  
+}
+
+variable "cf_validation_arn" {
+    type = string
+}

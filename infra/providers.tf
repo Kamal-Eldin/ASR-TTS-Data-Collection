@@ -8,9 +8,15 @@ terraform {
 }
 
 provider "aws" {
+  alias = "main-provider"
   # profile = "Feth-IAM"
   region  = "eu-central-1"
 
+}
+
+provider "aws" {
+  alias = "alias-provider"
+  region = "us-east-1"
 }
 
 terraform {
