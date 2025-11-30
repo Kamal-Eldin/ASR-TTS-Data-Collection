@@ -25,10 +25,10 @@ jobs:
     build-frontend:
         runs-on: ubuntu-latest
         outputs:
-          ecs_dns     : ${{ steps.cf.outputs.ecs_dns}}
-          cf_dns      : ${{ steps.cf.outputs.cf_dns}}
-          backend_port   : ${{ steps.cf.outputs.backend_port}}
-          origin_path : ${{ steps.cf.outputs.origin_path}}
+          backend_dns     : ${{ steps.cf.outputs.backend_dns}}
+          cf_dns          : ${{ steps.cf.outputs.cf_dns}}
+          backend_port    : ${{ steps.cf.outputs.backend_port}}
+          origin_path     : ${{ steps.cf.outputs.origin_path}}
         steps:
             - name: checkout repo
               uses: actions/checkout@v5
@@ -54,7 +54,7 @@ jobs:
             #     echo "Deploying cloudfront Module......................."
             #     terraform apply -target=module.cloudfront --auto-approve
             #     echo "-------------------------------------------"
-            #     echo "ecs_dns=$(terraform output -raw ecs_dns)" >> "$GITHUB_OUTPUT"
+            #     echo "backend_dns=$(terraform output -raw backend_dns)" >> "$GITHUB_OUTPUT"
             #     echo "cf_dns=$(terraform output -raw cf_dns)" >> "$GITHUB_OUTPUT"
 
             - name: terraform outputs
@@ -65,7 +65,7 @@ jobs:
                 set +x
                 terraform refresh
                 echo "-------------------------------------------"
-                for var in ecs_dns cf_dns backend_port origin_path
+                for var in backend_dns cf_dns backend_port origin_path
                 do 
                 echo "$var=$(terraform output -raw $var)"     >> "$GITHUB_OUTPUT"
                 done
@@ -78,13 +78,13 @@ jobs:
                 npm install && npm i --save-dev @types/node
                 npm run build
                 echo "-------------------------------------------"
-                echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE '/api')"
+                echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE 'lambda-url')"
                 echo "-------------------------------------------"
                 echo "this is the VITE_URL: $VITE_BACKEND_URL"
                 echo "-------------------------------------------"
               env:
-                # VITE_BACKEND_URL: http://${{steps.cf.outputs.ecs_dns}}:${{steps.cf.outputs.backend_port}}
-                VITE_BACKEND_URL: /api
+                # VITE_BACKEND_URL: http://${{steps.cf.outputs.backend_dns}}:${{steps.cf.outputs.backend_port}}
+                VITE_BACKEND_URL: ${{steps.cf.outputs.backend_dns}}
 
             - name: archive static files
               uses: actions/upload-artifact@v4

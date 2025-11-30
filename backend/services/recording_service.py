@@ -6,6 +6,7 @@ from database.session import session_lock
 from services.settings_service import SettingsService
 from utils.file_utils import save_audio_file, delete_audio_file
 from utils.logging import log_interaction
+from config import AppConfig
 import os
 from fastapi.responses import FileResponse
 
@@ -13,7 +14,7 @@ class RecordingService:
     @staticmethod
     def upload_audio(text: str, audio_file, project_id: int):
         """Upload audio recording for a specific prompt"""
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         
         with session_lock:
             db = SessionLocal()
@@ -71,7 +72,7 @@ class RecordingService:
     @staticmethod
     def delete_audio(text: str, project_id: int):
         """Delete audio recording for a specific prompt"""
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         
         with session_lock:
             db = SessionLocal()
@@ -147,14 +148,14 @@ class RecordingService:
     @staticmethod
     def list_recordings():
         """List all recording files"""
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         files = [f for f in os.listdir(storage_path) if os.path.isfile(os.path.join(storage_path, f))]
         return {"recordings": files}
 
     @staticmethod
     def get_recording(filename: str):
         """Get a specific recording file"""
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         file_path = os.path.join(storage_path, filename)
         
         if not os.path.exists(file_path):

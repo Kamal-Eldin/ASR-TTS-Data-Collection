@@ -27,3 +27,7 @@ output "url" {
     description = "cloudfront domain name"
   
 }
+
+output "cf_zone" {
+    value = aws_cloudfront_distribution.collector-front.hosted_zone_id
+}

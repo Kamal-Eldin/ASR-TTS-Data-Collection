@@ -27,8 +27,8 @@ class ExportService:
     @classmethod
     def export_to_s3(cls, payload: dict = None):
         """Export recordings to Amazon S3"""
-        bucket: str = SettingsService.get_setting("s3_bucket", "")
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        bucket: str = SettingsService.get_setting("s3_bucket", AppConfig.BUCKET)
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         s3:client = cls.get_s3_client()
         print(s3)
 
@@ -70,7 +70,7 @@ class ExportService:
         if not token or not repo_id:
             return {"status": "error", "detail": "Hugging Face token or repo not configured"}
         
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         
         # Get project info
         with session_lock:
@@ -129,7 +129,7 @@ class ExportService:
     @staticmethod
     def clear_database():
         """Clear all data from the database and delete all audio files"""
-        storage_path = SettingsService.get_setting("storage_path", "recordings")
+        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
         
         # Delete all audio files
         if os.path.exists(storage_path):

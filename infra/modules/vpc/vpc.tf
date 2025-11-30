@@ -126,3 +126,56 @@ resource "aws_db_subnet_group" "collector-db-subnet-group" {
     name = "${var.application_name}-db-subnet-grp"
     subnet_ids = [aws_subnet.collector-subnet-1.id, aws_subnet.collector-subnet-2.id]
 }
+
+
+resource "aws_security_group" "lambda-secgrp" {
+    name = "${var.application_name}-lambda-secgrp"
+    region = var.region
+    vpc_id = aws_vpc.collector-vpc.id
+
+}
+
+resource "aws_vpc_security_group_egress_rule" "lambda_egress" {
+    security_group_id = aws_security_group.lambda-secgrp.id
+    cidr_ipv4 = "0.0.0.0/0"
+    region = var.region
+    ip_protocol = "TCP"
+    to_port = 443
+    from_port = 443
+
+}
+
+resource "aws_vpc_security_group_egress_rule" "lambda_egress_db" {
+    security_group_id = aws_security_group.lambda-secgrp.id
+    cidr_ipv4 = "0.0.0.0/0"
+    region = var.region
+    ip_protocol = "TCP"
+    to_port = var.db_port
+    from_port = var.db_port
+}
+
+resource "aws_security_group" "efs-secgrp" {
+    name = "${var.application_name}-efs-secgrp"
+    vpc_id = aws_vpc.collector-vpc.id
+    region = var.region
+
+}
+
+resource "aws_vpc_security_group_ingress_rule" "efs-ingress" {
+    region = var.region
+    security_group_id = aws_security_group.efs-secgrp.id
+    cidr_ipv4 = aws_subnet.collector-subnet-1.cidr_block
+    to_port = 2049
+    from_port = 2049
+    ip_protocol = "TCP"
+}
+
+resource "aws_vpc_security_group_egress_rule" "lambda-efs-egress" {
+    region = var.region
+    security_group_id = aws_security_group.lambda-secgrp.id
+    cidr_ipv4 = aws_subnet.collector-subnet-1.cidr_block
+    ip_protocol = "TCP"
+    from_port = 2049
+    to_port = 2049
+  
+}

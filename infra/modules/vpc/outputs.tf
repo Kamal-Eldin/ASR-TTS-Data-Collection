@@ -22,9 +22,23 @@ output "vpc_id"{
 output "secgrp_id" {
     value = aws_security_group.alb-secgrp.id
 }
+output "lambda_secgrp_id" {
+    value = aws_security_group.lambda-secgrp.id
+}
+
+output "efs_secgrp_id" {
+    value = aws_security_group.efs-secgrp.id
+}
+
 
 output "subnets_ids" {
     value = [aws_subnet.collector-subnet-1.id, aws_subnet.collector-subnet-2.id]
+}
+output "subnet_1-AZ" {
+    value = aws_subnet.collector-subnet-1.availability_zone
+}
+output "subnet_2-AZ" {
+    value = aws_subnet.collector-subnet-2.availability_zone
 }
 
 output "db_secgrp_id" {

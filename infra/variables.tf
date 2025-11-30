@@ -56,3 +56,9 @@ variable "origin_path" {
     default = "/frontend"
     sensitive = false
 }
+
+variable "apex_zone" {
+    type = string
+    default = "voiceforce.click"
+
+}

@@ -29,10 +29,23 @@ variable "origin_path" {
     type = string
 }
 
-variable "alb_domain" {
+# variable "alb_domain" {
+#     type = string
+# }
+
+# variable "alb_id" {
+#     type = string
+# }
+
+variable "lambda_dns" {
     type = string
 }
 
-variable "alb_id" {
+variable "apex_zone" {
+    type = string
+  
+}
+
+variable "cf_validation_arn" {
     type = string
 }
