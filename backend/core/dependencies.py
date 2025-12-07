@@ -10,6 +10,7 @@ from core.security import SECRET_KEY, ALGORITHM
 
 security = HTTPBearer()
 
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
@@ -43,6 +44,7 @@ async def get_current_user(
         raise HTTPException(status_code=400, detail="Inactive user")
 
     return user
+
 
 async def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),

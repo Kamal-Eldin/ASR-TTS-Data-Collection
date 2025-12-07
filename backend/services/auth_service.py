@@ -5,6 +5,7 @@ from models.schemas import UserCreate, UserLogin
 from core.security import verify_password, get_password_hash, create_access_token
 from services.settings_service import SettingsService
 
+
 class AuthService:
     @staticmethod
     def register(db: Session, user_data: UserCreate) -> User:
@@ -40,7 +41,8 @@ class AuthService:
         db.refresh(db_user)
 
         # Create default settings for the new user
-        SettingsService.create_default_settings(db_user.id, db)  # type: ignore[arg-type]
+        SettingsService.create_default_settings(
+            db_user.id, db)  # type: ignore[arg-type]
 
         return db_user
 
