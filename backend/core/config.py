@@ -5,6 +5,63 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+class AppConfig:
+    """Application configuration class"""
+    
+    # Storage Configuration
+    STORAGE_PATH= os.getenv('STORAGE_PATH', default="/tmp/recordings")
+    BUCKET: str = os.getenv('BUCKET', default="s3://speech-collector")
+    # CORS Configuration
+    CORS_ORIGINS: str = os.getenv(key='CORS_ORIGINS',default= 'http://localhost:3000')
+    CORS_REGEX: str = os.getenv(key="CORS_REGEX", default=r"^https?://(localhost:\d+|[\w-]+\.cloudfront\.net)$" )
+    ROUTER_PREFIX: str = os.getenv('ROUTER_PREFIX', '')
+    
+    # Export Timeouts
+    HF_EXPORT_TIMEOUT = int(os.getenv('HF_EXPORT_TIMEOUT', 300))
+    S3_EXPORT_TIMEOUT = int(os.getenv('S3_EXPORT_TIMEOUT', 300))
+    
+    # AWS Configuration
+    AWS_ACCESS_KEY_ID_FILE = os.getenv('AWS_ACCESS_KEY_ID', '')
+    AWS_SECRET_ACCESS_KEY_FILE = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+    AWS_DEFAULT_REGION = os.getenv('AWS_DEFAULT_REGION', 'us-east-1')
+    
+    # Hugging Face Configuration
+    HUGGINGFACE_TOKEN_FILE: str = os.getenv('HUGGINGFACE_TOKEN_FILE', '/run/secrets/hf_token')
+    HUGGINGFACE_REPO: str = os.getenv('HUGGINGFACE_REPO', '')      
+    HUGGINGFACE_TOKEN: str = os.getenv('HUGGINGFACE_TOKEN', '')
+
+
+    @staticmethod
+    def get_secret(secret_path: str, env_key:str | None, default: str|None) -> str | None:
+
+        try:
+            assert os.path.exists(secret_path), f"No secret file found for {env_key} at path: {secret_path}"
+            with open(secret_path, 'r') as file:
+                return file.read() 
+        except:
+            print(f"Falling back to environment variable for key {env_key}")
+            try:
+                variable = os.getenv(env_key, "")
+                assert variable, ValueError
+                return variable
+            except:
+                print(f"failed to find user set variable, resorting to default value {default}")
+                return default
+   
+
+    @classmethod
+    def get_hf_token(cls) -> str:
+       return cls.get_secret(secret_path=cls.HUGGINGFACE_TOKEN_FILE, env_key="HUGGINGFACE_TOKEN", default="")
+        
+    @classmethod
+    def get_aws_access_id(cls):
+       return cls.get_secret(secret_path=cls.AWS_ACCESS_KEY_ID_FILE, env_key="AWS_EXPORT_KEY_ID", default= "")
+        
+    @classmethod
+    def get_aws_access_secret(cls):
+       return cls.get_secret(secret_path=cls.AWS_SECRET_ACCESS_KEY_FILE, env_key="AWS_EXPORT_KEY_SECRET", default= "")
+
+        
 class DatabaseConfig:
     """Database configuration class"""
     
@@ -14,16 +71,17 @@ class DatabaseConfig:
     MYSQL_USER = os.getenv('MYSQL_USER', 'root')
     MYSQL_PASSWORD_FILE = os.getenv('MYSQL_PASSWORD_FILE', '')
     MYSQL_DATABASE = os.getenv('MYSQL_DATABASE', 'tts_dataset_generator')
+    AWS_ACCESS_KEY_ID_FILE= os.getenv('AWS_ACCESS_KEY_ID_FILE', '')
+    AWS_SECRET_ACCESS_KEY_FILE= os.getenv('AWS_SECRET_ACCESS_KEY_FILE', '')
     
     # SQLite Configuration (default)
     SQLITE_DATABASE = os.getenv('SQLITE_DATABASE', 'data/tts_dataset.db')
-    
+
+    config = AppConfig
+
     @classmethod
     def get_db_password(cls):
-        valid_filepath = os.path.exists(cls.MYSQL_PASSWORD_FILE)
-        assert valid_filepath, f"MYSQL_PASSWORD_FILE cannot be found neither at {cls.MYSQL_PASSWORD_FILE} nor defaults"
-        with open(cls.MYSQL_PASSWORD_FILE, 'r') as file:
-            return file.read() 
+        return cls.config.get_secret(cls.MYSQL_PASSWORD_FILE, env_key="MYSQL_PASSWORD", default= "admin")
          
     @classmethod
     def get_database_url(cls):
@@ -48,40 +106,3 @@ class DatabaseConfig:
             if missing_fields:
                 raise ValueError(f"Missing required MySQL configuration: {missing_fields}")
         return True
-
-class AppConfig:
-    """Application configuration class"""
-    
-    # Storage Configuration
-    STORAGE_PATH = os.getenv('STORAGE_PATH', 'data/recordings')
-    
-    # CORS Configuration
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:5174').split(',')
-    
-    # Export Timeouts
-    HF_EXPORT_TIMEOUT = int(os.getenv('HF_EXPORT_TIMEOUT', 300))
-    S3_EXPORT_TIMEOUT = int(os.getenv('S3_EXPORT_TIMEOUT', 300))
-    
-    # AWS Configuration
-    AWS_ACCESS_KEY_ID_FILE = os.getenv('AWS_ACCESS_KEY_ID', '')
-    AWS_SECRET_ACCESS_KEY_FILE = os.getenv('AWS_SECRET_ACCESS_KEY', '')
-    AWS_DEFAULT_REGION = os.getenv('AWS_DEFAULT_REGION', 'us-east-1')
-    
-    # Hugging Face Configuration
-    HUGGINGFACE_TOKEN_FILE = os.getenv('HUGGINGFACE_TOKEN_FILE', '/run/secrets/hf_token')
-    HUGGINGFACE_REPO = os.getenv('HUGGINGFACE_REPO', '')       
-
-    @classmethod
-    def get_hf_token(cls):
-        with open(cls.HUGGINGFACE_TOKEN_FILE, 'r') as file:
-            return file.read()
-        
-    @classmethod
-    def get_aws_access_id(cls):
-        with open(cls.AWS_ACCESS_KEY_ID_FILE, 'r') as file:
-            return file.read()
-        
-    @classmethod
-    def get_aws_access_secret(cls):
-        with open(cls.AWS_SECRET_ACCESS_KEY_FILE, 'r') as file:
-            return file.read()

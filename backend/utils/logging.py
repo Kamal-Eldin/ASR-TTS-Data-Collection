@@ -1,12 +1,11 @@
 from logging import getLogger, StreamHandler, FileHandler, Formatter, DEBUG
 
-
 logger= getLogger(name="app-logger")
 logger.setLevel(DEBUG)
 
 log_form= Formatter(fmt="{asctime}-{module}-{levelname}-{message}", style='{')
 to_console= StreamHandler()
-to_file= FileHandler(filename="./logs.log", mode='a') # where . is repo root if local and /app/backend if container
+to_file= FileHandler(filename=f"/tmp/logs.log", mode='a')
 
 to_console.setFormatter(log_form)
 to_file.setFormatter(log_form)

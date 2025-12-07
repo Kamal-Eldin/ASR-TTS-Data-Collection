@@ -1,0 +1,65 @@
+name: deploy-backend
+"on":
+    workflow_dispatch:
+
+    push:
+        branches: 
+        - "release/*"
+        paths:
+            - "backend/*"
+            - '.github/workflows/backend.yaml'
+            - 'infra/*'
+env:
+    artifact_dir: .artifacts
+    TF_VAR_HF_TOKEN             : ${{secrets.TF_VAR_HF_TOKEN}}
+    TF_VAR_MYSQL_PASSWORD       : ${{secrets.TF_VAR_MYSQL_PASSWORD }}
+    TF_VAR_MYSQL_ROOT_PASSWORD  : ${{secrets.TF_VAR_MYSQL_ROOT_PASSWORD}}
+
+jobs:
+    deploy-backend:
+        runs-on: ubuntu-22.04
+        outputs:
+          cf_dns      : ${{ steps.deploy.outputs.cf_dns}}
+          backend_dns : ${{ steps.deploy.outputs.backend_dns}}
+        defaults:
+          run:
+            working-directory: ./infra
+        steps:
+            - name: checkout-repo
+              uses: actions/checkout@v5
+            
+            - name: init-workflow
+              uses: ./.github/actions/init
+              with:
+                tf_hf_token         : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_pass          : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_root_pass     : ${{env.TF_VAR_HF_TOKEN}}
+                aws_key_id          : ${{secrets.AWS_ACCESS_KEY_ID}}
+                aws_secret          : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+                aws_region          : "eu-central-1"
+
+            - name: apply-tf
+              id: deploy
+              continue-on-error: false
+              run: |
+                set +x
+                echo "-------------------------------------------"
+                echo "Deploying terraform systems......................."
+                terraform apply --auto-approve
+                echo "-------------------------------------------"
+                echo "Writing backend domain to backend_dns git output"
+                echo "backend_dns=terraform output backend_dns"   >> "$GITHUB_OUTPUT"
+                echo "cf_dns=terraform output cf_dns"             >> "$GITHUB_OUTPUT"
+                echo "-------------------------------------------"
+
+            - name: DNS
+              id: dns
+              run: |
+                set +x
+                terraform refresh &> /dev/null
+                echo "backend url at:"
+                terraform output backend_dns
+                echo "-------------------------------------------"
+                echo "frontend url at:"
+                terraform output cf_dns
+                echo "-------------------------------------------"

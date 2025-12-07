@@ -7,12 +7,14 @@ LABEL description='''The voice and text data annotation platform. \
                     speech to text targets for ASR applications.'''
 
 ARG APP_PORT
+ENV APP_PORT=${APP_PORT}
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 
 WORKDIR /app
 
 # Copy package files and install dependencies
 COPY frontend/package.json ./frontend/
-RUN cd frontend && npm install
+RUN cd frontend && npm install && npm i --save-dev @types/node
 
 # Copy the rest of the frontend code
 COPY frontend/ ./frontend/
@@ -22,6 +24,7 @@ RUN cd frontend && npm run build
 
 # Stage 2: Build the Python backend and create the final image
 FROM python:3.11-slim
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1 /lambda-adapter /opt/extensions/lambda-adapter
 
 WORKDIR /app/backend
 
@@ -50,4 +53,4 @@ RUN mkdir -p /app/backend/data/recordings && chmod -R 777 /app/backend/data
 EXPOSE ${APP_PORT}
 
 # Start Uvicorn server
-CMD uvicorn main:app --host 0.0.0.0 --port $APP_PORT
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $APP_PORT"]

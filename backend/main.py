@@ -32,7 +32,8 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:8500", "http://localhost:3000"],
+    allow_origin_regex=AppConfig.CORS_REGEX,
+    # allow_origins=AppConfig.CORS_ORIGINS.split(','),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,12 +48,16 @@ migrate_schema()
 # Ensure storage directory exists
 SettingsService.ensure_storage_path()
 
-# Include API v1 routers
-app.include_router(auth.router)
-app.include_router(projects.router)
-app.include_router(recordings.router)
-app.include_router(settings.router)
-app.include_router(exports.router)
+# Include API routers with ROUTER_PREFIX        # for cloudfront ALB routing
+app.include_router(projects_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(recordings_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(settings_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(exports_router, prefix= AppConfig.ROUTER_PREFIX )
+
+# Health check endpoint (must be before static mount)
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 # Health check endpoint
 @app.get("/health")
@@ -77,6 +82,9 @@ async def api_root():
 # Serve static files (React app)
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print(f"Set CORS_ORIGINS: {AppConfig.CORS_ORIGINS}")
+    uvicorn.run(app, host="0.0.0.0", port=8500) 

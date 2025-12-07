@@ -1,0 +1,47 @@
+name: "init"
+description: "initialization of aws and terraform"
+inputs:
+  tf_hf_token:
+    description: "populates TF_VAR_HF_TOKEN"
+    required: true
+  tf_db_pass:
+    description: "populates TF_VAR_MYSQL_PASSWORD"
+    required: true
+  tf_db_root_pass:
+    description: "populates TF_VAR_MYSQL_ROOT_PASSWORD"
+    required: true
+  aws_key_id: 
+    description: "populates aws access key id"
+    required: true
+  aws_secret: 
+    description: "populates aws access key id"
+    required: true
+  aws_region:
+    description: "populates aws region"
+    default: "eu-central-1"
+
+runs:
+    using: "composite"
+    steps:
+
+        - name: auth-aws
+          uses: aws-actions/configure-aws-credentials@main
+          with:
+            aws-region              : ${{inputs.aws_region}}
+            aws-access-key-id       : ${{inputs.aws_key_id}}
+            aws-secret-access-key   : ${{inputs.aws_secret}}
+
+        - name: setup-terraform
+          uses: hashicorp/setup-terraform@v3
+
+        - name: init-terraform
+          working-directory: ./infra
+          shell: bash
+          run: |
+            echo "current working dir: ${PWD}"
+            terraform init
+            terraform validate
+          env:
+            TF_VAR_HF_TOKEN             : ${{inputs.tf_hf_token}}
+            TF_VAR_MYSQL_PASSWORD       : ${{inputs.tf_db_pass }}
+            TF_VAR_MYSQL_ROOT_PASSWORD  : ${{inputs.tf_db_root_pass}}
