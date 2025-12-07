@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from models.database import User
 from models.schemas import UserCreate, UserLogin
 from core.security import verify_password, get_password_hash, create_access_token
+from services.settings_service import SettingsService
 
 class AuthService:
     @staticmethod
@@ -38,6 +39,9 @@ class AuthService:
         db.commit()
         db.refresh(db_user)
 
+        # Create default settings for the new user
+        SettingsService.create_default_settings(db_user.id, db)  # type: ignore[arg-type]
+
         return db_user
 
     @staticmethod
@@ -64,7 +68,7 @@ class AuthService:
 
         # Create access token
         access_token = create_access_token(
-            data={"sub": user.id, "username": user.username}
+            data={"sub": str(user.id), "username": user.username}
         )
 
         return {

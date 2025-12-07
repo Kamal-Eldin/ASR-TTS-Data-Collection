@@ -76,4 +76,18 @@ class SettingsService:
         """Ensure user-specific storage directory exists"""
         storage_path = SettingsService.get_user_setting("storage_path", user_id, f"recordings/user_{user_id}", db)
         os.makedirs(storage_path, exist_ok=True)
-        return storage_path 
+        return storage_path
+
+    @staticmethod
+    def create_default_settings(user_id: int, db: Session):
+        """Create default settings for a new user"""
+        default_settings = {
+            "storage_path": f"recordings/user_{user_id}",
+            "s3_bucket": "",
+            "huggingface_token": "",
+            "huggingface_repo": ""
+        }
+        for key, value in default_settings.items():
+            setting = Setting(key=key, value=value, user_id=user_id)
+            db.add(setting)
+        db.commit()

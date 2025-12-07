@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import { useAuth } from '../contexts/AuthContext';
+import { API_BASE, authHeaders, fetchJson } from '../utils/api';
 
 interface Project {
   id: number;
@@ -26,16 +24,20 @@ function Projects() {
   const [inputMethod, setInputMethod] = useState<'csv' | 'text'>('csv');
   const [isRtl, setIsRtl] = useState(false);
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [token]);
 
   const fetchProjects = async () => {
-    const res = await fetch(`${BACKEND_URL}/projects/`);
-    const data = await res.json();
-    console.log('Projects data received:', data.projects);
-    setProjects(data.projects);
+    if (!token) return;
+    try {
+      const data = await fetchJson<Project[]>(`/api/v1/projects/`, token);
+      setProjects(data);
+    } catch (err) {
+      console.error('Failed to load projects', err);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,45 +63,35 @@ function Projects() {
     }
 
     try {
-      let res;
-      
+      const formData = new FormData();
+      formData.append('project_name', projectName);
+      formData.append('is_rtl', isRtl.toString());
       if (inputMethod === 'csv') {
-        const formData = new FormData();
         formData.append('file', selectedFile!);
-        formData.append('project_name', projectName);
-        formData.append('is_rtl', isRtl.toString());
-        
-        res = await fetch(`${BACKEND_URL}/upload_csv/`, {
-          method: 'POST',
-          body: formData,
-        });
       } else {
-        const formData = new FormData();
-        formData.append('project_name', projectName);
         formData.append('prompts_text', multiLineText);
-        formData.append('is_rtl', isRtl.toString());
-        
-        res = await fetch(`${BACKEND_URL}/create_project/`, {
-          method: 'POST',
-          body: formData,
-        });
       }
+
+      const res = await fetch(`${API_BASE}/api/v1/projects/`, {
+        method: 'POST',
+        headers: authHeaders(token || undefined),
+        body: formData,
+      });
+      const data = await res.json();
+
       if (res.ok) {
-        const data = await res.json();
         setShowProjectModal(false);
         setProjectName('');
         setSelectedFile(null);
         setMultiLineText('');
         setInputMethod('csv');
         fetchProjects();
-        // Navigate to the new project
-        navigate(`/recording/${data.project_id}`);
+        navigate(`/recording/${data.id}`);
       } else {
-        const error = await res.json();
-        alert(`Error: ${error.detail}`);
+        alert(`Error: ${data.detail || 'Failed to create project'}`);
       }
-    } catch (res) {
-      alert('Failed to create project. Please try again. response: ' + res);
+    } catch (err) {
+      alert('Failed to create project. Please try again.');
     }
   };
 
@@ -124,12 +116,13 @@ function Projects() {
 
   const confirmDelete = async () => {
     if (!projectToDelete) return;
-    
+
     try {
-      const res = await fetch(`${BACKEND_URL}/projects/${projectToDelete.id}`, {
+      const res = await fetch(`${API_BASE}/api/v1/projects/${projectToDelete.id}`, {
         method: 'DELETE',
+        headers: authHeaders(token || undefined),
       });
-      
+
       if (res.ok) {
         setShowDeleteModal(false);
         setProjectToDelete(null);
@@ -154,242 +147,313 @@ function Projects() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-          <button 
-            onClick={() => setShowProjectModal(true)} 
-            className="bg-gray-900 text-white rounded-lg px-6 py-3 font-semibold hover:bg-gray-800 transition shadow-sm"
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Your Projects</h1>
+          <p className="text-slate-500 mt-1">Manage your voice dataset collections</p>
+        </div>
+        <button
+          onClick={() => setShowProjectModal(true)}
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg shadow-indigo-200 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          New Project
+        </button>
+      </div>
+
+      {projects.length > 0 ? (
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {projects.map(project => (
+            <div
+              key={project.id}
+              className="group relative bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 p-5 sm:p-6 hover:shadow-xl hover:shadow-indigo-100/50 hover:border-indigo-200 transition-all duration-300 cursor-pointer"
+              onClick={() => startRecording(project.id)}
+            >
+              {/* Delete Button */}
+              <button
+                onClick={(e) => handleDeleteClick(project, e)}
+                className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600"
+                title="Delete project"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+
+              {/* Project Icon */}
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </div>
+
+              {/* Project Info */}
+              <h3 className="font-bold text-lg text-slate-800 mb-1 pr-8 truncate">{project.name}</h3>
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <p className="text-slate-400 text-sm">
+                  {new Date(project.created_at).toLocaleDateString()}
+                </p>
+                {project.is_rtl && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    RTL
+                  </span>
+                )}
+              </div>
+
+              {/* Progress */}
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-medium text-slate-500">Progress</span>
+                  <span className="text-xs font-medium text-indigo-600">{getProgressPercentage(project)}%</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
+                    style={{ width: `${getProgressPercentage(project)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-1">{getProgressText(project)}</p>
+              </div>
+
+              {/* Action Button */}
+              <button className="w-full py-2.5 px-4 rounded-xl font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors duration-200 flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {project.recorded_count && project.recorded_count > 0 ? 'Continue' : 'Start Recording'}
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-slate-200/60 p-8 sm:p-12 text-center">
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-6">
+            <svg className="w-10 h-10 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">No projects yet</h2>
+          <p className="text-slate-500 mb-8 max-w-md mx-auto">Create your first voice dataset project to start collecting recordings</p>
+          <button
+            onClick={() => setShowProjectModal(true)}
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg shadow-indigo-200 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            New Project
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Create First Project
           </button>
         </div>
+      )}
 
-        {projects.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map(project => (
-              <div 
-                key={project.id} 
-                className="border border-gray-200 rounded-lg p-6 hover:border-gray-300 hover:shadow-md transition cursor-pointer relative group"
-                onClick={() => startRecording(project.id)}
-              >
-                {/* Delete Button */}
+      {/* Create Project Modal */}
+      {showProjectModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={resetModal} />
+
+            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8 overflow-hidden">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Create New Project</h2>
                 <button
-                  onClick={(e) => handleDeleteClick(project, e)}
-                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity bg-red-50 text-red-600 rounded-full p-2 hover:bg-red-100"
-                  title="Delete project"
+                  onClick={resetModal}
+                  className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
                 >
-                  🗑️
-                </button>
-
-                <h3 className="font-bold text-lg text-gray-900 mb-2 pr-8">{project.name}</h3>
-                <div className="flex items-center gap-2 mb-4">
-                  <p className="text-gray-500 text-sm">
-                    Created: {new Date(project.created_at).toLocaleDateString()}
-                  </p>
-                  {project.is_rtl && (
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      RTL
-                    </span>
-                  )}
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-medium text-gray-600">Progress</span>
-                    <span className="text-xs text-gray-500">{getProgressText(project)}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-gray-900 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${getProgressPercentage(project)}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <button className="w-full bg-gray-900 text-white rounded-lg px-4 py-2 font-semibold hover:bg-gray-800 transition">
-                  {project.recorded_count && project.recorded_count > 0 ? 'Continue Recording' : 'Start Recording'}
+                  <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🎤</div>
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">No projects yet</h2>
-            <p className="text-gray-500 mb-6">Create your first voice dataset project to get started!</p>
-            <button 
-              onClick={() => setShowProjectModal(true)} 
-              className="bg-gray-900 text-white rounded-lg px-8 py-3 font-semibold hover:bg-gray-800 transition shadow-sm"
-            >
-              Create First Project
-            </button>
-          </div>
-        )}
 
-        {/* Project Creation Modal */}
-        {showProjectModal && (
-          <div className="fixed top-0 left-0 w-screen h-screen bg-black/60 z-40 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg min-w-[500px] max-w-[600px] shadow-lg max-h-[90vh] overflow-y-auto">
-              <h2 className="font-bold text-xl text-gray-900 mb-6">Create New Project</h2>
-              
-              <div className="space-y-4">
-                <label className="block">
-                  <span className="text-gray-700 font-medium">Project Name</span>
-                  <input 
-                    value={projectName} 
-                    onChange={(e) => setProjectName(e.target.value)} 
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base bg-gray-50 text-gray-900 outline-none mt-1 focus:border-gray-500" 
+              <div className="space-y-5">
+                {/* Project Name */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Project Name</label>
+                  <input
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     placeholder="Enter project name"
                   />
-                </label>
-                
-                {/* Input Method Selection */}
-                <div className="block">
-                  <span className="text-gray-700 font-medium">Input Method</span>
-                  <div className="flex gap-4 mt-2">
-                    <label className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="inputMethod" 
-                        value="csv" 
-                        checked={inputMethod === 'csv'} 
-                        onChange={(e) => setInputMethod(e.target.value as 'csv' | 'text')}
-                        className="mr-2"
-                      />
-                      <span className="text-gray-700">CSV Upload</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input 
-                        type="radio" 
-                        name="inputMethod" 
-                        value="text" 
-                        checked={inputMethod === 'text'} 
-                        onChange={(e) => setInputMethod(e.target.value as 'csv' | 'text')}
-                        className="mr-2"
-                      />
-                      <span className="text-gray-700">Multi-line Text</span>
-                    </label>
+                </div>
+
+                {/* Input Method */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-3">Input Method</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setInputMethod('csv')}
+                      className={`p-4 rounded-xl border-2 transition-all text-left ${
+                        inputMethod === 'csv'
+                          ? 'border-indigo-500 bg-indigo-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <svg className={`w-6 h-6 mb-2 ${inputMethod === 'csv' ? 'text-indigo-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className={`font-medium ${inputMethod === 'csv' ? 'text-indigo-700' : 'text-slate-600'}`}>CSV Upload</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInputMethod('text')}
+                      className={`p-4 rounded-xl border-2 transition-all text-left ${
+                        inputMethod === 'text'
+                          ? 'border-indigo-500 bg-indigo-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <svg className={`w-6 h-6 mb-2 ${inputMethod === 'text' ? 'text-indigo-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                      </svg>
+                      <span className={`font-medium ${inputMethod === 'text' ? 'text-indigo-700' : 'text-slate-600'}`}>Text Input</span>
+                    </button>
                   </div>
                 </div>
-                
-                {/* RTL Option */}
-                <div className="block">
-                  <label className="flex items-center">
-                    <input 
-                      type="checkbox" 
-                      checked={isRtl} 
-                      onChange={(e) => setIsRtl(e.target.checked)}
-                      className="mr-2"
-                    />
-                    <span className="text-gray-700 font-medium">Right-to-Left (RTL) Language</span>
-                  </label>
-                  <p className="text-sm text-gray-500 mt-1 ml-6">
-                    Enable for Arabic, Persian, or other RTL languages
-                  </p>
+
+                {/* RTL Toggle */}
+                <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-200">
+                  <div>
+                    <p className="font-medium text-slate-700">Right-to-Left (RTL)</p>
+                    <p className="text-sm text-slate-500">For Arabic, Persian, Hebrew, etc.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsRtl(!isRtl)}
+                    className={`relative w-12 h-7 rounded-full transition-colors ${isRtl ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                  >
+                    <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${isRtl ? 'translate-x-5' : ''}`} />
+                  </button>
                 </div>
-                
-                {/* CSV Upload Section */}
+
+                {/* CSV Upload */}
                 {inputMethod === 'csv' && (
-                  <label className="block">
-                    <span className="text-gray-700 font-medium">CSV File with Prompts</span>
-                    <input 
-                      type="file" 
-                      accept=".csv" 
-                      onChange={handleFileSelect} 
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base bg-gray-50 text-gray-900 outline-none mt-1 focus:border-gray-500" 
-                    />
-                    {selectedFile && (
-                      <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
-                        ✓ Selected: {selectedFile.name}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">CSV File with Prompts</label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileSelect}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      <div className={`p-6 border-2 border-dashed rounded-xl text-center transition-colors ${
+                        selectedFile ? 'border-green-300 bg-green-50' : 'border-slate-300 hover:border-indigo-300 hover:bg-indigo-50/50'
+                      }`}>
+                        {selectedFile ? (
+                          <div className="flex items-center justify-center gap-2 text-green-600">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="font-medium">{selectedFile.name}</span>
+                          </div>
+                        ) : (
+                          <>
+                            <svg className="w-8 h-8 mx-auto text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p className="text-sm text-slate-500">Click to upload CSV file</p>
+                          </>
+                        )}
                       </div>
-                    )}
-                    <p className="text-sm text-gray-500 mt-1">Upload a CSV file with one prompt per row</p>
-                  </label>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">One prompt per row in the CSV file</p>
+                  </div>
                 )}
-                
-                {/* Multi-line Text Section */}
+
+                {/* Text Input */}
                 {inputMethod === 'text' && (
-                  <label className="block">
-                    <span className="text-gray-700 font-medium">Prompts (one per line)</span>
-                    <textarea 
-                      value={multiLineText} 
-                      onChange={(e) => setMultiLineText(e.target.value)} 
-                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base bg-gray-50 text-gray-900 outline-none mt-1 focus:border-gray-500 resize-vertical" 
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Prompts (one per line)</label>
+                    <textarea
+                      value={multiLineText}
+                      onChange={(e) => setMultiLineText(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
                       placeholder="Enter your prompts here, one per line..."
-                      rows={8}
-                      style={{ 
+                      rows={6}
+                      style={{
                         direction: isRtl ? 'rtl' : 'ltr',
                         textAlign: isRtl ? 'right' : 'left'
                       }}
                     />
-                    <p className="text-sm text-gray-500 mt-1">
-                      Enter each prompt on a separate line. Empty lines will be ignored.
-                    </p>
                     {multiLineText && (
-                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
-                        ✓ {multiLineText.split('\n').filter(line => line.trim()).length} prompts detected
+                      <div className="flex items-center gap-2 mt-2 text-sm text-indigo-600">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        {multiLineText.split('\n').filter(line => line.trim()).length} prompts detected
                       </div>
                     )}
-                  </label>
+                  </div>
                 )}
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
-                <button 
-                  onClick={resetModal} 
-                  className="bg-gray-100 text-gray-600 rounded-lg px-5 py-2 font-semibold hover:bg-gray-200 transition"
+              {/* Modal Footer */}
+              <div className="flex flex-col-reverse sm:flex-row gap-3 mt-8">
+                <button
+                  onClick={resetModal}
+                  className="flex-1 px-6 py-3 rounded-xl font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={createProject}
-                  className="bg-gray-900 text-white rounded-lg px-5 py-2 font-semibold hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={
-                    !projectName.trim() || 
-                    (inputMethod === 'csv' && !selectedFile) || 
-                    (inputMethod === 'text' && !multiLineText.trim())
-                  }
+                  disabled={!projectName.trim() || (inputMethod === 'csv' && !selectedFile) || (inputMethod === 'text' && !multiLineText.trim())}
+                  className="flex-1 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-200"
                 >
                   Create Project
                 </button>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && projectToDelete && (
-          <div className="fixed top-0 left-0 w-screen h-screen bg-black/60 z-40 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg min-w-[400px] shadow-lg">
-              <h2 className="font-bold text-xl text-red-600 mb-4">Delete Project</h2>
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to delete <strong>"{projectToDelete.name}"</strong>? 
-                This will permanently delete the project and all its recordings.
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && projectToDelete && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => { setShowDeleteModal(false); setProjectToDelete(null); }} />
+
+            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-8 text-center">
+              <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Delete Project?</h2>
+              <p className="text-slate-500 mb-6">
+                Are you sure you want to delete <strong className="text-slate-700">"{projectToDelete.name}"</strong>?
+                This will permanently delete all recordings.
               </p>
-              
-              <div className="flex justify-end gap-3">
-                <button 
-                  onClick={() => { setShowDeleteModal(false); setProjectToDelete(null); }} 
-                  className="bg-gray-100 text-gray-600 rounded-lg px-5 py-2 font-semibold hover:bg-gray-200 transition"
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowDeleteModal(false); setProjectToDelete(null); }}
+                  className="flex-1 px-6 py-3 rounded-xl font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={confirmDelete}
-                  className="bg-red-600 text-white rounded-lg px-5 py-2 font-semibold hover:bg-red-700 transition"
+                  className="flex-1 px-6 py-3 rounded-xl font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
                 >
-                  Delete Project
+                  Delete
                 </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default Projects; 
+export default Projects;

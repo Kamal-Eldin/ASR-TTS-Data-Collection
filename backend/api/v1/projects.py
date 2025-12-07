@@ -165,6 +165,72 @@ async def get_project_recordings(
 
     return recordings
 
+@router.post("/{project_id}/prompts")
+async def add_prompts_to_project(
+    project_id: int,
+    prompts_text: str = Form(None),
+    file: UploadFile = File(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Add more prompts to an existing project"""
+    # Verify project ownership
+    project = db.query(Project).filter(
+        Project.id == project_id,
+        Project.user_id == current_user.id
+    ).first()
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+
+    # Get current max order_index
+    max_index = db.query(Prompt).filter(
+        Prompt.project_id == project_id
+    ).count()
+
+    # Process prompts from either CSV file or text input
+    prompts = []
+
+    if file and file.filename:
+        # Process CSV file
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(status_code=400, detail="File must be a CSV")
+
+        content = await file.read()
+        text = content.decode('utf-8')
+
+        csv_reader = csv.reader(text.splitlines())
+        for row in csv_reader:
+            if row and row[0].strip():
+                prompts.append(row[0].strip())
+
+    elif prompts_text:
+        # Process text input
+        prompts = [line.strip() for line in prompts_text.replace('\r\n', '\n').split('\n') if line.strip()]
+
+    if not prompts:
+        raise HTTPException(status_code=400, detail="No valid prompts found")
+
+    # Create new prompts
+    for index, prompt_text in enumerate(prompts):
+        db_prompt = Prompt(
+            project_id=project_id,
+            user_id=current_user.id,
+            text=prompt_text,
+            order_index=max_index + index
+        )
+        db.add(db_prompt)
+
+    db.commit()
+
+    logger.info(f"Added {len(prompts)} prompts to project '{project.name}' for user {current_user.username}")
+
+    return {"message": f"Added {len(prompts)} prompts", "count": len(prompts)}
+
+
 @router.delete("/{project_id}")
 async def delete_project(
     project_id: int,

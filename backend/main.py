@@ -7,6 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 # Import configuration
 from core.config import AppConfig
@@ -75,8 +76,23 @@ async def api_root():
         }
     }
 
-# Serve static files (React app)
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Serve static assets (JS, CSS, images from Vite build)
+app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
+
+# Serve index.html for root path
+@app.get("/")
+async def serve_root():
+    return FileResponse("static/index.html")
+
+# Catch-all route for SPA - serves index.html for client-side routing
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    # Check if it's an actual file in static directory
+    file_path = os.path.join("static", full_path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    # Otherwise return index.html for SPA routing
+    return FileResponse("static/index.html")
 
 
 

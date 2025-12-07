@@ -28,7 +28,7 @@ class Setting(Base):
     id = Column(Integer, primary_key=True, index=True)
     key = Column(String(255), index=True)
     value = Column(Text)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
     # Relationship
     user = relationship("User", back_populates="settings")
