@@ -14,7 +14,7 @@ from datetime import datetime
 # Add the backend directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config import DatabaseConfig
+from core.config import DatabaseConfig
 
 def connect_sqlite():
     """Connect to SQLite database"""

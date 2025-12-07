@@ -7,9 +7,9 @@ from core.dependencies import get_current_user
 from models.database import User
 from database.session import get_db
 
-router = APIRouter(tags=["settings"])
+router = APIRouter(prefix="/api/v1/settings", tags=["Settings"])
 
-@router.get("/settings/")
+@router.get("/")
 async def get_settings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -21,7 +21,7 @@ async def get_settings(
         "huggingface_repo": SettingsService.get_user_setting("huggingface_repo", current_user.id, "", db)
     }
 
-@router.post("/settings/")
+@router.post("/")
 async def set_settings(
     settings: Settings,
     current_user: User = Depends(get_current_user),
@@ -35,4 +35,4 @@ async def set_settings(
         "user_id": current_user.id,
         "settings": settings.dict(exclude_unset=True)
     })
-    return await get_settings(current_user, db) 
+    return await get_settings(current_user, db)

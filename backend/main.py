@@ -48,16 +48,12 @@ migrate_schema()
 # Ensure storage directory exists
 SettingsService.ensure_storage_path()
 
-# Include API routers with ROUTER_PREFIX        # for cloudfront ALB routing
-app.include_router(projects_router, prefix= AppConfig.ROUTER_PREFIX )
-app.include_router(recordings_router, prefix= AppConfig.ROUTER_PREFIX )
-app.include_router(settings_router, prefix= AppConfig.ROUTER_PREFIX )
-app.include_router(exports_router, prefix= AppConfig.ROUTER_PREFIX )
-
-# Health check endpoint (must be before static mount)
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+# Include API routers with optional ROUTER_PREFIX (for CloudFront/ALB routing)
+app.include_router(auth.router, prefix=AppConfig.ROUTER_PREFIX)
+app.include_router(projects.router, prefix=AppConfig.ROUTER_PREFIX)
+app.include_router(recordings.router, prefix=AppConfig.ROUTER_PREFIX)
+app.include_router(settings.router, prefix=AppConfig.ROUTER_PREFIX)
+app.include_router(exports.router, prefix=AppConfig.ROUTER_PREFIX)
 
 # Health check endpoint
 @app.get("/health")

@@ -5,7 +5,7 @@ from core.dependencies import get_current_user
 from models.database import User, Project
 from database.session import get_db
 
-router = APIRouter(tags=["recordings"])
+router = APIRouter(prefix="/api/v1/recordings", tags=["Recordings"])
 
 @router.post("/upload_audio/")
 async def upload_audio(
@@ -27,7 +27,7 @@ async def upload_audio(
             detail="Project not found or access denied"
         )
 
-    return RecordingService.upload_audio(text, audio, project_id, current_user.id)
+    return RecordingService.upload_audio(text, audio, project_id, current_user.id, db)
 
 @router.post("/delete_audio/")
 async def delete_audio(
@@ -48,16 +48,16 @@ async def delete_audio(
             detail="Project not found or access denied"
         )
 
-    return RecordingService.delete_audio(text, project_id, current_user.id)
+    return RecordingService.delete_audio(text, project_id, current_user.id, db)
 
-@router.get("/list_recordings/")
+@router.get("/")
 async def list_recordings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     return RecordingService.list_recordings(current_user.id, db)
 
-@router.get("/recordings/{filename}")
+@router.get("/{filename}")
 async def get_recording(
     filename: str,
     current_user: User = Depends(get_current_user),

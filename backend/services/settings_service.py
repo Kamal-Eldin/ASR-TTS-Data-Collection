@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from models.database import Setting
 from database.connection import SessionLocal
 from database.session import session_lock
-from config import AppConfig
+from core.config import AppConfig
 
 class SettingsService:
     @staticmethod

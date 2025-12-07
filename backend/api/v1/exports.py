@@ -5,7 +5,7 @@ from core.dependencies import get_current_user
 from models.database import User, Project
 from database.session import get_db
 
-router = APIRouter(tags=["exports"])
+router = APIRouter(prefix="/api/v1/exports", tags=["Exports"])
 
 @router.post("/export_s3/")
 async def export_s3(

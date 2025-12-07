@@ -12,7 +12,7 @@ from datetime import datetime
 # Add the backend directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from config import DatabaseConfig
+from core.config import DatabaseConfig
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 import pymysql
