@@ -5,6 +5,8 @@ import Recording from './components/Recording';
 import Settings from './components/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
+import ErrorBoundary from './components/ErrorBoundary';
+import { ToastProvider } from './components/Toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const Shell = () => {
@@ -181,20 +183,24 @@ const Shell = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route element={<ProtectedRoute />}>
-            <Route element={<Shell />}>
-              <Route path="/" element={<Projects />} />
-              <Route path="/recording/:projectId" element={<Recording />} />
-              <Route path="/settings" element={<Settings />} />
-            </Route>
-          </Route>
-        </Routes>
-      </Router>
-    </AuthProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route element={<ProtectedRoute />}>
+                <Route element={<Shell />}>
+                  <Route path="/" element={<Projects />} />
+                  <Route path="/recording/:projectId" element={<Recording />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Route>
+              </Route>
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

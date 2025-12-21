@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { API_BASE, authHeaders, fetchJson } from '../utils/api';
+import { useToast } from './Toast';
 import ShareModal from './ShareModal';
 
 interface Project {
@@ -31,6 +32,9 @@ function Projects() {
   const [isRtl, setIsRtl] = useState(false);
   const navigate = useNavigate();
   const { token } = useAuth();
+  const { showError, showSuccess } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProjects();
@@ -38,11 +42,18 @@ function Projects() {
 
   const fetchProjects = async () => {
     if (!token) return;
+    setIsLoading(true);
+    setFetchError(null);
     try {
       const data = await fetchJson<Project[]>(`/api/v1/projects/`, token);
       setProjects(data);
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load projects';
+      setFetchError(message);
+      showError(message);
       console.error('Failed to load projects', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,17 +65,17 @@ function Projects() {
 
   const createProject = async () => {
     if (!projectName.trim()) {
-      alert('Please provide a project name.');
+      showError('Please provide a project name.');
       return;
     }
 
     if (inputMethod === 'csv' && !selectedFile) {
-      alert('Please select a CSV file.');
+      showError('Please select a CSV file.');
       return;
     }
 
     if (inputMethod === 'text' && !multiLineText.trim()) {
-      alert('Please enter some prompts.');
+      showError('Please enter some prompts.');
       return;
     }
 
@@ -86,6 +97,7 @@ function Projects() {
       const data = await res.json();
 
       if (res.ok) {
+        showSuccess(`Project "${projectName}" created successfully!`);
         setShowProjectModal(false);
         setProjectName('');
         setSelectedFile(null);
@@ -94,10 +106,10 @@ function Projects() {
         fetchProjects();
         navigate(`/recording/${data.id}`);
       } else {
-        alert(`Error: ${data.detail || 'Failed to create project'}`);
+        showError(data.detail || 'Failed to create project');
       }
     } catch (err) {
-      alert('Failed to create project. Please try again.');
+      showError('Failed to create project. Please check your connection and try again.');
     }
   };
 
@@ -136,15 +148,16 @@ function Projects() {
       });
 
       if (res.ok) {
+        showSuccess(`Project "${projectToDelete.name}" deleted successfully`);
         setShowDeleteModal(false);
         setProjectToDelete(null);
         fetchProjects();
       } else {
         const error = await res.json();
-        alert(`Error: ${error.detail}`);
+        showError(error.detail || 'Failed to delete project');
       }
     } catch (error) {
-      alert('Failed to delete project. Please try again.');
+      showError('Failed to delete project. Please check your connection and try again.');
     }
   };
 
@@ -177,7 +190,39 @@ function Projects() {
         </button>
       </div>
 
-      {projects.length > 0 ? (
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3 text-slate-500">
+            <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span>Loading projects...</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {fetchError && !isLoading && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-red-800 mb-2">Failed to load projects</h3>
+          <p className="text-red-600 mb-4">{fetchError}</p>
+          <button
+            onClick={fetchProjects}
+            className="px-6 py-2 rounded-xl font-medium text-red-600 bg-red-100 hover:bg-red-200 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !fetchError && projects.length > 0 ? (
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map(project => (
             <div
@@ -271,7 +316,7 @@ function Projects() {
             </div>
           ))}
         </div>
-      ) : (
+      ) : !isLoading && !fetchError ? (
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-slate-200/60 p-8 sm:p-12 text-center">
           <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-6">
             <svg className="w-10 h-10 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -290,7 +335,7 @@ function Projects() {
             Create First Project
           </button>
         </div>
-      )}
+      ) : null}
 
       {/* Create Project Modal */}
       {showProjectModal && (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE, authHeaders } from '../utils/api';
+import { useToast } from './Toast';
 
 interface Collaborator {
   id: number;
@@ -22,8 +23,8 @@ function ShareModal({ projectId, projectName, isOpen, onClose, token }: ShareMod
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [isOwner, setIsOwner] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [fetchingCollabs, setFetchingCollabs] = useState(false);
+  const { showError, showSuccess } = useToast();
 
   useEffect(() => {
     if (isOpen && projectId) {
@@ -33,17 +34,26 @@ function ShareModal({ projectId, projectName, isOpen, onClose, token }: ShareMod
 
   const fetchCollaborators = async () => {
     if (!token) return;
+    setFetchingCollabs(true);
     try {
       const res = await fetch(`${API_BASE}/api/v1/projects/${projectId}/collaborators`, {
         headers: authHeaders(token),
       });
-      const data = await res.json();
-      if (res.ok) {
-        setCollaborators(data.collaborators || []);
-        setIsOwner(data.is_owner);
+
+      if (!res.ok) {
+        const data = await res.json();
+        showError(data.detail || 'Failed to load collaborators');
+        return;
       }
+
+      const data = await res.json();
+      setCollaborators(data.collaborators || []);
+      setIsOwner(data.is_owner);
     } catch (err) {
+      showError('Failed to load collaborators. Please check your connection.');
       console.error('Failed to fetch collaborators', err);
+    } finally {
+      setFetchingCollabs(false);
     }
   };
 
@@ -52,8 +62,6 @@ function ShareModal({ projectId, projectName, isOpen, onClose, token }: ShareMod
     if (!emailOrUsername.trim() || !token) return;
 
     setLoading(true);
-    setError('');
-    setSuccess('');
 
     try {
       const formData = new FormData();
@@ -68,14 +76,14 @@ function ShareModal({ projectId, projectName, isOpen, onClose, token }: ShareMod
       const data = await res.json();
 
       if (res.ok) {
-        setSuccess(`Project shared with ${data.collaborator.username}`);
+        showSuccess(`Project shared with ${data.collaborator.username}`);
         setEmailOrUsername('');
         fetchCollaborators();
       } else {
-        setError(data.detail || 'Failed to share project');
+        showError(data.detail || 'Failed to share project');
       }
     } catch (err) {
-      setError('Failed to share project. Please try again.');
+      showError('Failed to share project. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -92,14 +100,14 @@ function ShareModal({ projectId, projectName, isOpen, onClose, token }: ShareMod
       });
 
       if (res.ok) {
-        setSuccess(`${username} removed from project`);
+        showSuccess(`${username} removed from project`);
         fetchCollaborators();
       } else {
         const data = await res.json();
-        setError(data.detail || 'Failed to remove collaborator');
+        showError(data.detail || 'Failed to remove collaborator');
       }
     } catch (err) {
-      setError('Failed to remove collaborator');
+      showError('Failed to remove collaborator. Please try again.');
     }
   };
 
@@ -126,25 +134,6 @@ function ShareModal({ projectId, projectName, isOpen, onClose, token }: ShareMod
               </svg>
             </button>
           </div>
-
-          {/* Messages */}
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-4 p-3 rounded-xl bg-green-50 text-green-600 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              {success}
-            </div>
-          )}
 
           {/* Share Form - Only show if owner */}
           {isOwner && (
@@ -181,10 +170,17 @@ function ShareModal({ projectId, projectName, isOpen, onClose, token }: ShareMod
           {/* Collaborators List */}
           <div>
             <h3 className="text-sm font-medium text-slate-700 mb-3">
-              {collaborators.length > 0 ? `Shared with (${collaborators.length})` : 'Not shared with anyone yet'}
+              {fetchingCollabs ? 'Loading...' : collaborators.length > 0 ? `Shared with (${collaborators.length})` : 'Not shared with anyone yet'}
             </h3>
 
-            {collaborators.length > 0 ? (
+            {fetchingCollabs ? (
+              <div className="flex items-center justify-center py-8">
+                <svg className="w-6 h-6 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              </div>
+            ) : collaborators.length > 0 ? (
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {collaborators.map((collab) => (
                   <div
