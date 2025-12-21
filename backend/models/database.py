@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Boolean, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -21,6 +21,7 @@ class User(Base):
     recordings = relationship("Recording", back_populates="user", cascade="all, delete-orphan")
     prompts = relationship("Prompt", back_populates="creator", cascade="all, delete-orphan")
     settings = relationship("Setting", back_populates="user", cascade="all, delete-orphan")
+    shared_projects = relationship("ProjectCollaborator", back_populates="user", cascade="all, delete-orphan")
 
 class Setting(Base):
     __tablename__ = 'settings'
@@ -46,6 +47,7 @@ class Project(Base):
     owner = relationship("User", back_populates="projects")
     prompts = relationship("Prompt", back_populates="project", cascade="all, delete-orphan")
     recordings = relationship("Recording", back_populates="project", cascade="all, delete-orphan")
+    collaborators = relationship("ProjectCollaborator", back_populates="project", cascade="all, delete-orphan")
 
 class Prompt(Base):
     __tablename__ = 'prompts'
@@ -86,3 +88,19 @@ class Interaction(Base):
     data = Column(JSON)
     timestamp = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey('users.id'))
+
+class ProjectCollaborator(Base):
+    __tablename__ = 'project_collaborators'
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey('projects.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    added_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    project = relationship("Project", back_populates="collaborators")
+    user = relationship("User", back_populates="shared_projects")
+
+    __table_args__ = (
+        UniqueConstraint('project_id', 'user_id', name='uq_project_collaborator'),
+    )

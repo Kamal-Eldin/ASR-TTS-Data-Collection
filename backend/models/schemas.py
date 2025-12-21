@@ -54,9 +54,26 @@ class ProjectResponse(ProjectBase):
     id: int
     user_id: int
     created_at: datetime
+    is_owner: bool = True
+    owner_username: Optional[str] = None
+    collaborator_count: int = 0
 
     class Config:
         orm_mode = True
+
+# Collaborator Schemas
+class CollaboratorResponse(BaseModel):
+    id: int
+    user_id: int
+    username: str
+    email: str
+    added_at: datetime
+
+    class Config:
+        orm_mode = True
+
+class ShareProjectRequest(BaseModel):
+    email_or_username: str
 
 # Recording Schemas
 class RecordingCreate(BaseModel):

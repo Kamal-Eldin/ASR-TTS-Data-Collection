@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { API_BASE, authHeaders, fetchJson } from '../utils/api';
+import ShareModal from './ShareModal';
 
 interface Project {
   id: number;
@@ -11,13 +12,18 @@ interface Project {
   total_prompts?: number;
   recorded_count?: number;
   last_recorded_index?: number;
+  is_owner?: boolean;
+  owner_username?: string;
+  collaborator_count?: number;
 }
 
 function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [projectToShare, setProjectToShare] = useState<Project | null>(null);
   const [projectName, setProjectName] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [multiLineText, setMultiLineText] = useState('');
@@ -114,6 +120,12 @@ function Projects() {
     setShowDeleteModal(true);
   };
 
+  const handleShareClick = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setProjectToShare(project);
+    setShowShareModal(true);
+  };
+
   const confirmDelete = async () => {
     if (!projectToDelete) return;
 
@@ -173,16 +185,33 @@ function Projects() {
               className="group relative bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 p-5 sm:p-6 hover:shadow-xl hover:shadow-indigo-100/50 hover:border-indigo-200 transition-all duration-300 cursor-pointer"
               onClick={() => startRecording(project.id)}
             >
-              {/* Delete Button */}
-              <button
-                onClick={(e) => handleDeleteClick(project, e)}
-                className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600"
-                title="Delete project"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              {/* Action Buttons */}
+              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                {/* Share Button - only for owners */}
+                {(project.is_owner !== false) && (
+                  <button
+                    onClick={(e) => handleShareClick(project, e)}
+                    className="p-2 rounded-xl bg-indigo-50 text-indigo-500 hover:bg-indigo-100 hover:text-indigo-600"
+                    title="Share project"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                  </button>
+                )}
+                {/* Delete Button - only for owners */}
+                {(project.is_owner !== false) && (
+                  <button
+                    onClick={(e) => handleDeleteClick(project, e)}
+                    className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600"
+                    title="Delete project"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                )}
+              </div>
 
               {/* Project Icon */}
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-4">
@@ -200,6 +229,18 @@ function Projects() {
                 {project.is_rtl && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                     RTL
+                  </span>
+                )}
+                {/* Shared badge - show if project has collaborators */}
+                {(project.is_owner !== false) && project.collaborator_count && project.collaborator_count > 0 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                    Shared ({project.collaborator_count})
+                  </span>
+                )}
+                {/* Shared by badge - show if user is not owner */}
+                {project.is_owner === false && project.owner_username && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                    By {project.owner_username}
                   </span>
                 )}
               </div>
@@ -451,6 +492,21 @@ function Projects() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Share Modal */}
+      {projectToShare && (
+        <ShareModal
+          projectId={projectToShare.id}
+          projectName={projectToShare.name}
+          isOpen={showShareModal}
+          onClose={() => {
+            setShowShareModal(false);
+            setProjectToShare(null);
+            fetchProjects(); // Refresh to update collaborator counts
+          }}
+          token={token}
+        />
       )}
     </div>
   );

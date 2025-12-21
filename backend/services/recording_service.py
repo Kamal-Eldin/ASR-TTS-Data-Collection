@@ -32,7 +32,7 @@ class RecordingService:
                 raise HTTPException(status_code=404, detail="Prompt not found for this project")
             
             # Generate filename and save audio
-            filename = save_audio_file(audio_file, text, storage_path)
+            filename = save_audio_file(audio_file, text, storage_path, user_id, project_id)
             
             # Check if recording already exists for this user/project/prompt
             existing = db.query(Recording).filter(

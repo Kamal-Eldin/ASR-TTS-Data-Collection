@@ -154,9 +154,9 @@ class ExportService:
                 db.close()
 
     @staticmethod
-    def clear_database():
-        """Clear all data from the database and delete all audio files"""
-        storage_path = SettingsService.get_setting("storage_path", AppConfig.STORAGE_PATH)
+    def clear_user_data(user_id: int, db: Session):
+        """Clear all data for a specific user"""
+        storage_path = SettingsService.get_user_setting("storage_path", user_id, AppConfig.STORAGE_PATH, db)
         
         try:
             # Get user's recordings
