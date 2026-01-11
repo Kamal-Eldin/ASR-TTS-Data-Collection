@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+
+# Virtual environment
+venv/
+.env
+
+# SQLite database
+*.sqlite3
+tts_dataset.db
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Build
+frontend/build/
+frontend/dist/
+*lock.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Recordings and generated data
+recordings/
+*.wav
+*.mp3
+*.ogg
+*.jsonl
+Output/
+.artifacts/
+
+# Logs
+*.log
+*log*
+logs
+
+# VSCode
+.vscode/
+
+# db data
+db_mount/
+*temp*
+*.ibt
+*.db
+data/
+
+#keys
+*.txt
+secrets/
+
+#notebooks
+*.ipynb
+
+#terraform
+*state*
+*.out
+.terraform*
+
+#WARP
+WARP.md
+
+

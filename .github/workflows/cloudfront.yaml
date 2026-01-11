@@ -1,0 +1,162 @@
+name: "deploy-cloudfront"
+"on":
+    push:
+        branches: 
+        - "release/*"
+        paths:
+          - 'frontend/**'
+          - '.github/workflows/cloudfront.yaml'
+    workflow_call: 
+    workflow_run: 
+      workflows:
+        - deploy-backend
+      branches: 
+        - release/*
+
+    workflow_dispatch:
+
+env:
+    TF_VAR_HF_TOKEN             : ${{secrets.TF_VAR_HF_TOKEN}}
+    TF_VAR_MYSQL_PASSWORD       : ${{secrets.TF_VAR_MYSQL_PASSWORD }}
+    TF_VAR_MYSQL_ROOT_PASSWORD  : ${{secrets.TF_VAR_MYSQL_ROOT_PASSWORD}}
+        
+
+jobs:
+    build-frontend:
+        runs-on: ubuntu-latest
+        outputs:
+          backend_dns     : ${{ steps.cf.outputs.backend_dns}}
+          cf_dns          : ${{ steps.cf.outputs.cf_dns}}
+          backend_port    : ${{ steps.cf.outputs.backend_port}}
+          origin_path     : ${{ steps.cf.outputs.origin_path}}
+        steps:
+            - name: checkout repo
+              uses: actions/checkout@v5
+              
+
+            - name: init-workflow
+              uses: ./.github/actions/init
+              with:
+                tf_hf_token         : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_pass          : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_root_pass     : ${{env.TF_VAR_HF_TOKEN}}
+                aws_key_id          : ${{secrets.AWS_ACCESS_KEY_ID}}
+                aws_secret          : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+                aws_region          : "eu-central-1"
+
+            # - name: deploy-cloudfront
+            #   working-directory: ./infra
+            #   id: cf
+            #   continue-on-error: false
+            #   run: |
+            #     set +x
+            #     echo "-------------------------------------------"
+            #     echo "Deploying cloudfront Module......................."
+            #     terraform apply -target=module.cloudfront --auto-approve
+            #     echo "-------------------------------------------"
+            #     echo "backend_dns=$(terraform output -raw backend_dns)" >> "$GITHUB_OUTPUT"
+            #     echo "cf_dns=$(terraform output -raw cf_dns)" >> "$GITHUB_OUTPUT"
+
+            - name: terraform outputs
+              working-directory: ./infra
+              continue-on-error: false
+              id: cf
+              run: |
+                set +x
+                terraform refresh
+                echo "-------------------------------------------"
+                for var in backend_dns cf_dns backend_port origin_path
+                do 
+                echo "$var=$(terraform output -raw $var)"     >> "$GITHUB_OUTPUT"
+                done
+                echo "-------------------------------------------"
+
+
+            - name: build frontend static files
+              run: |
+                cd ./frontend
+                npm install && npm i --save-dev @types/node
+                npm run build
+                echo "-------------------------------------------"
+                echo "Validating BACKEND_URL: $(cat dist/assets/*.js | grep -oE 'lambda-url')"
+                echo "-------------------------------------------"
+                echo "this is the VITE_URL: $VITE_BACKEND_URL"
+                echo "-------------------------------------------"
+              env:
+                # VITE_BACKEND_URL: http://${{steps.cf.outputs.backend_dns}}:${{steps.cf.outputs.backend_port}}
+                VITE_BACKEND_URL: ${{steps.cf.outputs.backend_dns}}
+
+            - name: archive static files
+              uses: actions/upload-artifact@v4
+              with:
+                name: static_files
+                path: 'frontend/dist'
+
+    upload-to-origin:
+        needs:
+            build-frontend
+        runs-on: ubuntu-latest
+        env:
+          artifact_dir: .artifacts
+          bucket: s3://speech-collector-s3
+          origin: s3://speech-collector-s3${{needs.build-frontend.outputs.origin_path}}
+        steps:
+            - name: retrieve artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: static_files
+                path: ${{env.artifact_dir}}
+
+            - name: check origin 
+              run: echo "this is the s3-origin target ${{env.origin}}"
+
+            - name: validate artifact
+              run: |
+                set +x
+                echo "-----------------------------------------"
+                echo "Validating frontend distribution artifact:"
+                echo "1. Listing items in the distribution directory:"
+                ls ${{env.artifact_dir}}
+                echo "-----------------------------------------"
+                nlines=$(wc -l < "${{env.artifact_dir}}/index.html")
+                echo "Found $nlines lines in index.html..."
+                echo "-----------------------------------------"
+                if [[ $nlines > 1 ]]; then
+                  echo "Successfully built and read static files!!!"
+                else
+                  echo "Failed to read static files artifact" >&2
+                  exit 1
+                fi
+                echo "-----------------------------------------"
+
+            - name: Authenticate AWS Creds
+              uses: aws-actions/configure-aws-credentials@main
+              with:
+                aws-region: "eu-central-1"
+                aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+                aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+            
+            - name: upload static files to origin
+              run: |
+                set +x
+                echo "current workdir: $PWD"
+                echo "checksum the list of static files:\n $(ls ${{env.artifact_dir}})"
+                echo "-----------------------------------------------------------"
+                echo "Syncing static files from artifact to ${{env.origin}}"
+                aws s3 sync ${{env.artifact_dir}} ${{env.origin}} --delete
+                echo "-----------------------------------------------------------"
+                echo "checksum the static files @ s3 origin:\n"
+                num_objs=$(aws s3 ls ${{env.origin}}/ --summarize | grep -oP '\d' | head -n 1)
+                if [[ $num_objs > 1 ]]; then
+                  echo "Successfully upload static files!!!"
+                else
+                  echo "Failed to upload static files" >&2
+                  exit 1
+                fi
+                echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--"
+                echo "This is the web URL: ${{needs.build-frontend.outputs.cf_dns}}"
+                echo "--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--"
+              
+
+  
+

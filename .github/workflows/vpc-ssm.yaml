@@ -1,0 +1,66 @@
+name: deploy-vpc-ssm
+"on":
+    workflow_dispatch:
+
+    push:
+        branches: 
+        - "release/*vpc*"
+        # paths:
+        #     - "backend/**"
+        #     - '.github/workflows/backend.yaml'
+        #     - 'infra/*'
+env:
+    artifact_dir: .artifacts
+
+jobs:
+    deploy-vpc-ssm:
+        runs-on: ubuntu-22.04
+        defaults:
+          run:
+            working-directory: ./infra
+        env:
+          TF_VAR_HF_TOKEN             : ${{secrets.TF_VAR_HF_TOKEN}}
+          TF_VAR_MYSQL_PASSWORD       : ${{secrets.TF_VAR_MYSQL_PASSWORD }}
+          TF_VAR_MYSQL_ROOT_PASSWORD  : ${{secrets.TF_VAR_MYSQL_ROOT_PASSWORD}}
+        steps:
+            - name: checkout-repo
+              uses: actions/checkout@v5
+            
+            - name: init-workflow
+              uses: ./.github/actions/init
+              with:
+                tf_hf_token         : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_password      : ${{env.TF_VAR_HF_TOKEN}}
+                tf_db_root_password : ${{env.TF_VAR_HF_TOKEN}}
+                aws_key_id          : ${{secrets.AWS_ACCESS_KEY_ID}}
+                aws_secret          : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+                aws_region          : "eu-central-1"
+
+            - name: apply-vpc
+              id: vpc
+              continue-on-error: false
+              run: |
+                set +x
+                echo "-------------------------------------------"
+                echo "Deploying VPC Module......................."
+                terraform apply -target=module.vpc --auto-approve
+                echo "-------------------------------------------"
+
+            - name: deploy-ssm
+              id: ssm
+              continue-on-error: false
+              run: |
+                set +x
+                echo "-------------------------------------------"
+                echo "Deploying SSM Module......................."
+                terraform apply -target=module.ssm --auto-approve
+                echo "-------------------------------------------"
+
+
+            - name: read-state
+              id: read-state
+              run: 
+                set +x
+                echo "--------------------------------------"
+                echo "returning assets in the current state:"
+                terraform state list
