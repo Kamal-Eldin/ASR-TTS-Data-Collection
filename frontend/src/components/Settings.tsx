@@ -92,7 +92,7 @@ function Settings() {
             <p className="text-gray-500 mt-1">Configure your application preferences</p>
           </div>
           <button 
-            onClick={() => navigate('/')} 
+            onClick={() => navigate("/projects")} 
             className="bg-gray-100 text-gray-600 rounded-lg px-4 py-2 font-semibold hover:bg-gray-200 transition"
           >
             ← Back to Projects

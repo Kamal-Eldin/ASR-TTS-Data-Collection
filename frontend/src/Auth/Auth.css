@@ -1,0 +1,693 @@
+
+.sign-in-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+
+.left-side {
+  position: fixed; /* Cover the entire viewport */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 0; /* Behind everything */
+}
+
+/* Background image */
+.background-image {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.background-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+/* =============================
+   Form Side (Overlay on RIGHT)
+============================= */
+
+.right-side{
+  flex: 1;
+  background: transparent;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 32px 107.6px;   
+  z-index: 10;
+  position: relative;
+
+               
+}
+
+
+
+/* Wrapper for tabs + card */
+.form-container {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: transparent;
+  transition: max-width 0.3s ease;
+}
+.form-container--signup {
+  max-width: 600px;  
+}
+
+/* =============================
+   Tabs
+============================= */
+
+.tab-list {
+  width: 100%;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  display: flex;
+  padding: 3.8px;
+  gap: 0;
+  position: relative;
+}
+
+.tab-button {
+  flex: 1;
+  height: 28.6px;
+  border: none;
+  background: transparent;
+  border-radius: 14px;
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4285714285714286em;
+  text-align: center;
+  color: #0A0A0A;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 0.8px solid transparent;
+}
+
+.tab-button.active {
+  background: #FFFFFF;
+  color: #312C85;
+  border-color: rgba(0, 0, 0, 0);
+}
+
+.tab-button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* =============================
+   Card
+============================= */
+
+.card {
+  width: 100%; 
+  background: rgba(255, 255, 255, 0.95);
+  border: 0.8px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 24px;
+  transition: max-width 0.3s ease, min-height 0.3s ease;
+  position: relative;
+  z-index: 11;
+  
+}
+
+
+
+.card-header {
+  margin-bottom: 24px;
+}
+
+.sign-up-form .card-header {
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1em;
+  text-align: center;
+  color: #0A0A0A;
+  margin: 0 0 8px 0;
+}
+
+.card-description {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5em;
+  text-align: center;
+  color: #717182;
+  margin: 0;
+}
+
+/* =============================
+   Forms
+============================= */
+
+.sign-in-form,
+.sign-up-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-label {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+line-height: 1.4285714285714286em;
+  color: #0A0A0A;
+}
+
+
+.form-label--small {
+  margin-bottom: 2px;
+
+}
+
+
+
+.input-container {
+  width: 100%;
+  height: 36px;
+  position: relative;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.form-input {
+  width: 100%;
+  height: 100%;
+  padding: 4px 12px;         
+  background: #F3F3F5;
+  border: 0.8px solid rgba(0, 0, 0, 0);
+  border-radius: 8px;
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.15em;
+  color: #717182;
+  outline: none;
+}
+
+.form-select-year {
+  width: auto;              
+  min-width: 72px;        
+  height: 36px;
+
+  background: #F3F3F5;
+  border-radius: 8px;
+
+}
+
+
+
+
+
+.form-input.with-icon {
+  padding-left: 40px;        
+}
+
+
+
+.form-input::placeholder {
+  color: #717182;
+}
+
+.form-input:focus {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  z-index: 1;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.password-toggle img {
+  width: 100%;
+  height: 100%;
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border: 0.8px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  background: #F3F3F5;
+  cursor: pointer;
+  box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+.checkbox-label {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4285714285714286em;
+
+  color: #4A5565;
+  cursor: pointer;
+}
+
+
+
+.forgot-password {
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4285714285714286em;
+  color: #4F39F6;
+  text-decoration: none;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.sign-in-button {
+  width: 100%;
+  height: 36px;
+  background: #030213;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Arimo', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4285714285714286em;
+  text-align: center;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 8px;
+}
+
+.sign-in-button:hover {
+  opacity: 0.9;
+}
+
+.sign-in-button:active {
+  opacity: 0.8;
+}
+
+/* =============================
+   Sign Up specifics
+============================= */
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.form-row--column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+.form-row .form-field {
+  flex: 1;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.form-select {
+  appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.form-select:disabled {
+  cursor: not-allowed;
+}
+
+/* Date input styling */
+input[type="date"] {
+  color: #717182;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+/* Ensure proper spacing in sign up form */
+.sign-up-form .form-field:last-of-type {
+  margin-top: 0;
+}
+
+/* =============================
+   Responsive
+============================= */
+
+@media (max-width: 768px) {
+  .right-side {
+    justify-content: center; /* Center card on small screens */
+    padding: 24px;
+  }
+
+  .blur-circle-1,
+  .blur-circle-2 {
+    filter: blur(96px);
+    opacity: 0.7;
+  }
+}
+
+
+/*Indicator*/
+.stepper{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #F3F3F5;
+  border: 1px solid rgba(0,0,0,0.06);
+  margin-bottom: 20px;
+}
+
+.stepper-item{
+  display: flex;
+  align-items: center;
+}
+
+.stepper-dot{
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: 'Arimo', sans-serif;
+  font-size: 12px;
+  line-height: 1;
+
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.10);
+  color: #717182;
+}
+
+.stepper-dot.active{
+  background: #0A0A0A;
+  border-color: #0A0A0A;
+  color: #ffffff;
+}
+
+.stepper-dot.done{
+  background: rgba(25, 255, 25, 0.6);
+  border-color: rgba(10,10,10,0.12);
+  color: #ffffff;
+}
+
+.stepper-line{
+  width: 26px;
+  height: 2px;
+  margin: 0 8px;
+  border-radius: 2px;
+  background: rgba(10,10,10,0.12);
+}
+
+.stepper-line.filled{
+  background: rgba(25, 255, 25, 0.6);
+}
+
+
+/*Passowrd Bar*/
+
+.form-field .input-container {
+  margin-bottom: 0;
+}
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0px;
+}
+
+/* bars */
+.strength-bars {
+  display: flex;
+  gap: 4px;
+}
+
+.strength-bar {
+  width: 18px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.15);
+}
+
+
+.password-strength.red .strength-bar.active {
+  background: #ef4444; 
+}
+
+.password-strength.yellow .strength-bar.active {
+  background: #f59e0b; 
+}
+
+.password-strength.green .strength-bar.active {
+  background: #22c55e; 
+}
+
+
+.strength-label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.password-strength.red .strength-label {
+  color: #ef4444;
+}
+
+.password-strength.yellow .strength-label {
+  color: #f59e0b;
+}
+
+.password-strength.green .strength-label {
+  color: #22c55e;
+}
+
+
+.password-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* wrapper */
+.tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* icon */
+.tooltip-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.2);
+  background: #fff;
+  color: #312C85;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* bubble */
+.tooltip-content {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
+  transform: translateX(-50%);
+  min-width: 220px;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(10, 10, 10, 0.92);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal;
+  z-index: 9999;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/* show on hover/focus */
+.tooltip:hover .tooltip-content,
+.tooltip:focus-within .tooltip-content {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* little arrow */
+.tooltip-content::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent rgba(10, 10, 10, 0.92) transparent;
+}
+
+
+.form-error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #d92d20;
+}
+
+
+
+.multi-select {
+  position: relative;
+}
+
+.multi-select-input {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+      
+       
+  
+}
+
+.form-input.multi-select-input {
+  height: 36px;               
+  line-height: 28px;          
+  padding: 4px 12px;          
+  padding-right: 40px;  
+  background: #F3F3F5;           
+  border-radius: 8px;
+  border: 0.8px solid transparent;
+  font-family: 'Arimo', sans-serif;
+  font-size: 14px;
+  color: #717182;
+                 
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+
+.multi-select-input .arrow {
+  margin-left: auto;
+  color: #717182;
+  font-size: 12px;
+}
+
+
+
+.multi-select .arrow {
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.multi-select-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 8px;
+  z-index: 20;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.checkbox-item:hover {
+  background: #f3f3f5;
+  border-radius: 6px;
+}
