@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from models.database import Setting
 from database.connection import SessionLocal
 from database.session import session_lock
-from config import AppConfig
+from core.config import AppConfig
 
 class SettingsService:
     @staticmethod
@@ -44,4 +44,50 @@ class SettingsService:
         storage_path = SettingsService.get_setting("storage_path" ,default= AppConfig.STORAGE_PATH)
         print(f">> Retrieved storage path at {storage_path}")
         os.makedirs(storage_path, exist_ok=True)
-        return storage_path 
+        return storage_path
+
+    # User-specific methods for multi-user support
+    @staticmethod
+    def get_user_setting(key: str, user_id: int, default: str, db: Session) -> str:
+        """Get user-specific setting"""
+        setting = db.query(Setting).filter(
+            Setting.key == key,
+            Setting.user_id == user_id
+        ).first()
+        return setting.value if setting else default
+
+    @staticmethod
+    def set_user_setting(key: str, value: str, user_id: int, db: Session):
+        """Set user-specific setting"""
+        setting = db.query(Setting).filter(
+            Setting.key == key,
+            Setting.user_id == user_id
+        ).first()
+
+        if setting:
+            setting.value = value
+        else:
+            setting = Setting(key=key, value=value, user_id=user_id)
+            db.add(setting)
+        db.commit()
+
+    @staticmethod
+    def ensure_user_storage_path(user_id: int, db: Session):
+        """Ensure user-specific storage directory exists"""
+        storage_path = SettingsService.get_user_setting("storage_path", user_id, f"recordings/user_{user_id}", db)
+        os.makedirs(storage_path, exist_ok=True)
+        return storage_path
+
+    @staticmethod
+    def create_default_settings(user_id: int, db: Session):
+        """Create default settings for a new user"""
+        default_settings = {
+            "storage_path": f"recordings/user_{user_id}",
+            "s3_bucket": "",
+            "huggingface_token": "",
+            "huggingface_repo": ""
+        }
+        for key, value in default_settings.items():
+            setting = Setting(key=key, value=value, user_id=user_id)
+            db.add(setting)
+        db.commit()
