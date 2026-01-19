@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { API_BASE, authHeaders, fetchJson } from '../utils/api';
 import { useToast } from './Toast';
 import ShareModal from './ShareModal';
@@ -31,7 +30,7 @@ function Projects() {
   const [inputMethod, setInputMethod] = useState<'csv' | 'text'>('csv');
   const [isRtl, setIsRtl] = useState(false);
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const token = localStorage.getItem('token');
   const { showError, showSuccess } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);

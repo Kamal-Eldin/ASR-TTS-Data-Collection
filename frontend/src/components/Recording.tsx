@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { encodeWAV, mergeBuffers, createAudioContext } from '../utils/wavEncoder';
-import { useAuth } from '../contexts/AuthContext';
 import { API_BASE, authHeaders, fetchJson } from '../utils/api';
 
 interface Project {
@@ -27,7 +26,7 @@ interface RecordingEntry {
 function Recording() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const token = localStorage.getItem('token');
 
   const [project, setProject] = useState<Project | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
