@@ -42,6 +42,7 @@ services:
       dockerfile: Dockerfile
       args:
         - APP_PORT=$APP_PORT
+        - VITE_GEONAMES_USERNAME=$VITE_GEONAMES_USERNAME
     ports:
       - ${APP_PORT}:${APP_PORT}
     volumes:
