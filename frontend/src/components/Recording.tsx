@@ -95,9 +95,9 @@ function Recording() {
         if (!isRecording) startRecording();
         else stopRecording();
       } else if (e.key === 'ArrowLeft') {
-        nextPrompt();
-      } else if (e.key === 'ArrowRight') {
         prevPrompt();
+      } else if (e.key === 'ArrowRight') {
+        nextPrompt();
       } else if (e.key === ' ') {
         e.preventDefault();
         playOrStop();
