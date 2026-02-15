@@ -6,29 +6,18 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-# Import configuration
-from core.config import AppConfig
-
-# Import database components
+from config import AppConfig
 from models.database import Base
 from database.connection import engine
 from database.migration import migrate_schema
-
-# Import services
 from services.settings_service import SettingsService
-
-# Import API v1 routers
-from api.v1 import auth, projects, recordings, settings, exports
+from api import projects_router, recordings_router, settings_router, exports_router
 
 # Create FastAPI app
-app = FastAPI(
-    title="ASR-TTS Data Collection API",
-    version="1.0.0",
-    description="Audio Recording Dataset Collection System with Authentication"
-)
+app = FastAPI(title="TTS Dataset Generator", version="1.0.0")
 
 # CORS middleware
 app.add_middleware(
@@ -49,50 +38,18 @@ migrate_schema()
 # Ensure storage directory exists
 SettingsService.ensure_storage_path()
 
-# Include API routers with optional ROUTER_PREFIX (for CloudFront/ALB routing)
-app.include_router(auth.router, prefix=AppConfig.ROUTER_PREFIX)
-app.include_router(projects.router, prefix=AppConfig.ROUTER_PREFIX)
-app.include_router(recordings.router, prefix=AppConfig.ROUTER_PREFIX)
-app.include_router(settings.router, prefix=AppConfig.ROUTER_PREFIX)
-app.include_router(exports.router, prefix=AppConfig.ROUTER_PREFIX)
+# Include API routers with ROUTER_PREFIX        # for cloudfront ALB routing
+app.include_router(projects_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(recordings_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(settings_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(exports_router, prefix= AppConfig.ROUTER_PREFIX )
 
-# Health check endpoint
+# Health check endpoint (must be before static mount)
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy", "api_version": "1.0.0"}
+def health_check():
+    return {"status": "healthy"}
 
-# API root
-@app.get("/api")
-async def api_root():
-    return {
-        "message": "ASR-TTS Data Collection API",
-        "version": "1.0.0",
-        "endpoints": {
-            "auth": "/api/v1/auth",
-            "projects": "/api/v1/projects",
-            "recordings": "/api/v1/recordings",
-            "settings": "/api/v1/settings",
-            "exports": "/api/v1/exports"
-        }
-    }
-
-# Serve static assets (JS, CSS, images from Vite build)
-app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
-
-# Serve index.html for root path
-@app.get("/")
-async def serve_root():
-    return FileResponse("static/index.html")
-
-# Catch-all route for SPA - serves index.html for client-side routing
-@app.get("/{full_path:path}")
-async def serve_spa(full_path: str):
-    # Check if it's an actual file in static directory
-    file_path = os.path.join("static", full_path)
-    if os.path.isfile(file_path):
-        return FileResponse(file_path)
-    # Otherwise return index.html for SPA routing
-    return FileResponse("static/index.html")
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from models.schemas import Settings
 from services.settings_service import SettingsService
 from utils.logging import log_interaction
-from core.config import AppConfig
+from config import AppConfig
 
 
 

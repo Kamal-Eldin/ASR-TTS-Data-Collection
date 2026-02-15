@@ -7,10 +7,9 @@ LABEL description='''The voice and text data annotation platform. \
                     speech to text targets for ASR applications.'''
 
 ARG APP_PORT
-ARG VITE_GEONAMES_USERNAME
+ARG VITE_BACKEND_URL
 ENV APP_PORT=${APP_PORT}
 ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
-ENV VITE_GEONAMES_USERNAME=${VITE_GEONAMES_USERNAME}
 
 WORKDIR /app
 

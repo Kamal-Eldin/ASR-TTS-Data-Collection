@@ -1,10 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate, Link, Outlet, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, Link, Outlet, useNavigate } from "react-router-dom";
 
 import Projects from "./components/Projects";
 import Recording from "./components/Recording";
 import Settings from "./components/Settings";
 import SignIn from "./Auth/SignIn";
-import { ToastProvider } from "./components/Toast";
 
 function AppLayout() {
   const navigate = useNavigate();
@@ -62,33 +61,29 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ToastProvider>
-        <Routes>
-          {/* open signin first */}
-          <Route path="/" element={<Navigate to="/signin" replace />} />
+    <Routes>
+      {/* open signin first */}
+      <Route path="/" element={<Navigate to="/signin" replace />} />
 
-          {/* auth page */}
-          <Route
-            path="/signin"
-            element={
-              localStorage.getItem("token")
-                ? <Navigate to="/projects" replace />
-                : <SignIn />
-            }
-          />
+      {/* auth page */}
+      <Route
+        path="/signin"
+        element={
+          localStorage.getItem("token")
+            ? <Navigate to="/projects" replace />
+            : <SignIn />
+        }
+      />
 
-          {/* main app pages */}
-          <Route element={<AppLayout />}>
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/recording/:projectId" element={<Recording />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
+      {/* main app pages */}
+      <Route element={<AppLayout />}>
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/recording/:projectId" element={<Recording />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
 
-          {/* fallback */}
-          <Route path="*" element={<Navigate to="/signin" replace />} />
-        </Routes>
-      </ToastProvider>
-    </BrowserRouter>
+      {/* fallback */}
+      <Route path="*" element={<Navigate to="/signin" replace />} />
+    </Routes>
   );
 }

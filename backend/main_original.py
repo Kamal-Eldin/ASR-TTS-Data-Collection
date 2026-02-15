@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import os
 
-from core.config import AppConfig
+from config import AppConfig
 from models.database import Base
 from database.connection import engine
 from database.migration import migrate_schema
