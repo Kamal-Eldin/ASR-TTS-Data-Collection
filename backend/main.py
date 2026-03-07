@@ -14,7 +14,7 @@ from models.database import Base
 from database.connection import engine
 from database.migration import migrate_schema
 from services.settings_service import SettingsService
-from api import projects_router, recordings_router, settings_router, exports_router
+from api import projects_router, recordings_router, settings_router, exports_router, password_reset_router
 
 # Create FastAPI app
 app = FastAPI(title="TTS Dataset Generator", version="1.0.0")
@@ -43,6 +43,7 @@ app.include_router(projects_router, prefix= AppConfig.ROUTER_PREFIX )
 app.include_router(recordings_router, prefix= AppConfig.ROUTER_PREFIX )
 app.include_router(settings_router, prefix= AppConfig.ROUTER_PREFIX )
 app.include_router(exports_router, prefix= AppConfig.ROUTER_PREFIX )
+app.include_router(password_reset_router, prefix= AppConfig.ROUTER_PREFIX )
 
 # Health check endpoint (must be before static mount)
 @app.get("/health")

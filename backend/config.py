@@ -25,6 +25,10 @@ class AppConfig:
     AWS_SECRET_ACCESS_KEY_FILE = os.getenv('AWS_SECRET_ACCESS_KEY', '')
     AWS_DEFAULT_REGION = os.getenv('AWS_DEFAULT_REGION', 'us-east-1')
     
+    # SES Email Configuration
+    SES_SENDER_EMAIL: str = os.getenv('SES_SENDER_EMAIL', '')
+    FRONTEND_URL: str = os.getenv('FRONTEND_URL', 'http://localhost:8500')
+
     # Hugging Face Configuration
     HUGGINGFACE_TOKEN_FILE: str = os.getenv('HUGGINGFACE_TOKEN_FILE', '/run/secrets/hf_token')
     HUGGINGFACE_REPO: str = os.getenv('HUGGINGFACE_REPO', '')      

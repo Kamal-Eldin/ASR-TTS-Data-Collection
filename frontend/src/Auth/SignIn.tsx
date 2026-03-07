@@ -438,7 +438,7 @@ function App() {
                       />
                       <label>Remember me</label>
                     </div>
-                    <a href="#">Forgot password?</a>
+                    <a href="/forgot-password" style={{ color: "#4F39F6", textDecoration: "none" }}>Forgot password?</a>
                   </div>
 
                   <button type="submit" className="sign-in-button">

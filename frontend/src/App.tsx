@@ -4,6 +4,8 @@ import Projects from "./components/Projects";
 import Recording from "./components/Recording";
 import Settings from "./components/Settings";
 import SignIn from "./Auth/SignIn";
+import ForgotPassword from "./Auth/ForgotPassword";
+import ResetPassword from "./Auth/ResetPassword";
 
 function AppLayout() {
   const navigate = useNavigate();
@@ -65,7 +67,7 @@ export default function App() {
       {/* open signin first */}
       <Route path="/" element={<Navigate to="/signin" replace />} />
 
-      {/* auth page */}
+      {/* auth pages */}
       <Route
         path="/signin"
         element={
@@ -74,6 +76,8 @@ export default function App() {
             : <SignIn />
         }
       />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* main app pages */}
       <Route element={<AppLayout />}>

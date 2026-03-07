@@ -46,4 +46,13 @@ class Interaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     action = Column(String(255))
     data = Column(JSON)
-    timestamp = Column(DateTime, default=datetime.utcnow) 
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+class PasswordResetToken(Base):
+    __tablename__ = 'password_reset_tokens'
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), nullable=False, index=True)
+    token = Column(String(255), unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Integer, default=0)  # 0 = unused, 1 = used
+    created_at = Column(DateTime, default=datetime.utcnow)
