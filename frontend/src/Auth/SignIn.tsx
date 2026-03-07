@@ -41,8 +41,6 @@ const initialSignUpData: SignUpData = {
 
   languagePairs: [
     { language: "", level: "" },
-    { language: "", level: "" },
-    { language: "", level: "" },
   ],
 
   password: "",
@@ -139,10 +137,9 @@ function App() {
 
               if (!signUpData.nativeLanguage) e.nativeLanguage = "Native language is required";
 
-              
+              // Only validate language pairs that have a language selected (level is required if language chosen)
               signUpData.languagePairs.forEach((p, idx) => {
-                if (!p.language) e[`languagePairs.${idx}.language`] = `Language ${idx + 1} is required`;
-                if (!p.level) e[`languagePairs.${idx}.level`] = `Level ${idx + 1} is required`;
+                if (p.language && !p.level) e[`languagePairs.${idx}.level`] = `Please select a level`;
               });
 
               if (!signUpData.system) e.system = "System is required";
@@ -782,13 +779,15 @@ function App() {
 
                            
                          {showLangDropdown && (
-                            <>
-                              {/* Languages */}
-                              <div className="form-row three-cols">
-                                {signUpData.languagePairs.map((pair, idx) => (
-                                  <div className="form-field" key={`lang-${idx}`}>
-                                    <label className="form-label">{`Language ${idx + 1}`}</label>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                              <label className="form-label" style={{ marginBottom: 0 }}>
+                                Other Languages <span style={{ color: "#999", fontWeight: 400, fontSize: "0.85em" }}>(optional)</span>
+                              </label>
 
+                              {signUpData.languagePairs.map((pair, idx) => (
+                                <div key={`lang-row-${idx}`} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                                  {/* Language select */}
+                                  <div style={{ flex: 2 }}>
                                     <div className="input-container">
                                       <div className="input-wrapper select-wrapper">
                                         <select
@@ -797,36 +796,25 @@ function App() {
                                           onChange={(e) => updatePair(idx, "language", e.target.value)}
                                         >
                                           <option value="">Select language</option>
-
                                           {languages
                                             .filter((l) => l !== signUpData.nativeLanguage)
                                             .filter((l) => !usedLanguages.includes(l) || l === pair.language)
                                             .map((lang) => (
-                                              <option key={lang} value={lang}>
-                                                {lang}
-                                              </option>
+                                              <option key={lang} value={lang}>{lang}</option>
                                             ))}
                                         </select>
-
                                         <svg className="select-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
                                           <path d="M4 6L8 10L12 6" stroke="#717182" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                       </div>
                                     </div>
-
                                     {errors[`languagePairs.${idx}.language`] && (
                                       <p className="form-error">{errors[`languagePairs.${idx}.language`]}</p>
                                     )}
                                   </div>
-                                ))}
-                              </div>
 
-                              {/* Levels */}
-                              <div className="form-row three-cols">
-                                {signUpData.languagePairs.map((pair, idx) => (
-                                  <div className="form-field" key={`level-${idx}`}>
-                                    <label className="form-label">{`Level ${idx + 1}`}</label>
-
+                                  {/* Level select */}
+                                  <div style={{ flex: 1 }}>
                                     <div className="input-container">
                                       <div className="input-wrapper select-wrapper">
                                         <select
@@ -834,31 +822,94 @@ function App() {
                                           value={pair.level}
                                           disabled={!pair.language}
                                           onChange={(e) => updatePair(idx, "level", e.target.value)}
+                                          style={{ opacity: pair.language ? 1 : 0.5 }}
                                         >
-                                          <option value="">
-                                            {pair.language ? "Select level" : "Select language first"}
-                                          </option>
-
+                                          <option value="">{pair.language ? "Level" : "—"}</option>
                                           {levels.map((lv) => (
-                                            <option key={lv} value={lv}>
-                                              {lv}
-                                            </option>
+                                            <option key={lv} value={lv}>{lv}</option>
                                           ))}
                                         </select>
-
                                         <svg className="select-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
                                           <path d="M4 6L8 10L12 6" stroke="#717182" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                       </div>
                                     </div>
-
                                     {errors[`languagePairs.${idx}.level`] && (
                                       <p className="form-error">{errors[`languagePairs.${idx}.level`]}</p>
                                     )}
                                   </div>
-                                ))}
-                              </div>
-                            </>
+
+                                  {/* Remove button (only if more than 1 row) */}
+                                  {signUpData.languagePairs.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSignUpData((prev) => ({
+                                          ...prev,
+                                          languagePairs: prev.languagePairs.filter((_, i) => i !== idx),
+                                        }));
+                                      }}
+                                      style={{
+                                        background: "none",
+                                        border: "1px solid #e0e0e0",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                        padding: "10px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: "#999",
+                                        fontSize: "18px",
+                                        lineHeight: 1,
+                                        flexShrink: 0,
+                                        height: "42px",
+                                        width: "42px",
+                                      }}
+                                      title="Remove language"
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+
+                              {/* Add language button */}
+                              {signUpData.languagePairs.length < 5 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSignUpData((prev) => ({
+                                      ...prev,
+                                      languagePairs: [...prev.languagePairs, { language: "", level: "" }],
+                                    }));
+                                  }}
+                                  style={{
+                                    background: "none",
+                                    border: "1px dashed #c0c0c0",
+                                    borderRadius: "8px",
+                                    padding: "8px 16px",
+                                    cursor: "pointer",
+                                    color: "#666",
+                                    fontSize: "0.9em",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "6px",
+                                    transition: "border-color 0.2s, color 0.2s",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = "#888";
+                                    e.currentTarget.style.color = "#333";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = "#c0c0c0";
+                                    e.currentTarget.style.color = "#666";
+                                  }}
+                                >
+                                  + Add another language
+                                </button>
+                              )}
+                            </div>
                           )}
 
 
