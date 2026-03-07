@@ -5,6 +5,26 @@ from datetime import datetime
 
 Base = declarative_base()
 
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    year_of_birth = Column(String(10))
+    gender = Column(String(20))
+    country = Column(String(100))
+    city = Column(String(100))
+    education = Column(String(50))
+    profession = Column(String(100))
+    language_related = Column(String(10))
+    native_language = Column(String(100))
+    language_pairs = Column(JSON)  # [{"language": "...", "level": "..."}]
+    system = Column(String(50))
+    mic_type = Column(String(50))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 class Setting(Base):
     __tablename__ = 'settings'
     id = Column(Integer, primary_key=True, index=True)

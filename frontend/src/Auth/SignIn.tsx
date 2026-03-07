@@ -3,6 +3,8 @@ import "./Auth.css";
 import StepIndicator from "../components/StepIndicator";
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 type LanguagePair = { language: string; level: string };
 type RestCountryLang = { languages?: Record<string, string> };
 type SignUpErrors = Partial<Record<string, string>>;
@@ -76,6 +78,9 @@ function App() {
   const [signUpCompleted, setSignUpCompleted] = useState(false);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [signUpData, setSignUpData] = useState<SignUpData>(initialSignUpData);
+  const [signUpLoading, setSignUpLoading] = useState(false);
+  const [signInLoading, setSignInLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
 
 
 
@@ -361,15 +366,34 @@ function App() {
                 
                 <form
                     className="sign-in-form"
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                       e.preventDefault();
+                      setAuthError("");
 
                       const errs = validateSignIn();
                       setSignInErrors(errs);
-
                       if (Object.keys(errs).length > 0) return;
 
-                      navigate("/projects", { replace: true });
+                      setSignInLoading(true);
+                      try {
+                        const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            email: signInData.email,
+                            password: signInData.password,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.detail || "Login failed");
+
+                        localStorage.setItem("token", data.token);
+                        navigate("/projects", { replace: true });
+                      } catch (err: unknown) {
+                        setAuthError(err instanceof Error ? err.message : "Login failed");
+                      } finally {
+                        setSignInLoading(false);
+                      }
                     }}
                   >
 
@@ -441,8 +465,12 @@ function App() {
                     <a href="/forgot-password" style={{ color: "#4F39F6", textDecoration: "none" }}>Forgot password?</a>
                   </div>
 
-                  <button type="submit" className="sign-in-button">
-                    Sign In
+                  {authError && activeTab === "signin" && (
+                    <p className="form-error" style={{ textAlign: "center" }}>{authError}</p>
+                  )}
+
+                  <button type="submit" className="sign-in-button" disabled={signInLoading} style={{ opacity: signInLoading ? 0.7 : 1 }}>
+                    {signInLoading ? "Signing in..." : "Sign In"}
                   </button>
                 </form>
               </>
@@ -1121,20 +1149,58 @@ function App() {
                             </button>
 
 
+                            {authError && activeTab === "signup" && (
+                              <p className="form-error" style={{ textAlign: "center" }}>{authError}</p>
+                            )}
+
                             <button
                                 type="button"
                                 className="sign-in-button"
-                                onClick={() => {
+                                disabled={signUpLoading}
+                                style={{ opacity: signUpLoading ? 0.7 : 1 }}
+                                onClick={async () => {
                                   const e = validateStep3();
                                   setErrors(e);
-
+                                  setAuthError("");
                                   if (Object.keys(e).length > 0) return;
 
-                                  setSignUpCompleted(true);
-                                  navigate("/projects", { replace: true });
+                                  setSignUpLoading(true);
+                                  try {
+                                    const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({
+                                        firstName: signUpData.firstName,
+                                        lastName: signUpData.lastName,
+                                        email: signUpData.email,
+                                        yearOfBirth: signUpData.yearOfBirth,
+                                        gender: signUpData.gender,
+                                        country: signUpData.country,
+                                        city: signUpData.city,
+                                        education: signUpData.education,
+                                        profession: signUpData.profession,
+                                        languageRelated: signUpData.languageRelated,
+                                        nativeLanguage: signUpData.nativeLanguage,
+                                        languagePairs: signUpData.languagePairs,
+                                        password: signUpData.password,
+                                        system: signUpData.system,
+                                        micType: signUpData.micType,
+                                      }),
+                                    });
+                                    const data = await res.json();
+                                    if (!res.ok) throw new Error(data.detail || "Signup failed");
+
+                                    localStorage.setItem("token", data.token);
+                                    setSignUpCompleted(true);
+                                    navigate("/projects", { replace: true });
+                                  } catch (err: unknown) {
+                                    setAuthError(err instanceof Error ? err.message : "Signup failed");
+                                  } finally {
+                                    setSignUpLoading(false);
+                                  }
                                 }}
                               >
-                                Submit
+                                {signUpLoading ? "Creating account..." : "Submit"}
                               </button>
 
                             </div>

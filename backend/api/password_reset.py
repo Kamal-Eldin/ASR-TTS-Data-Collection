@@ -4,8 +4,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 
 from database.session import get_db
-from models.database import PasswordResetToken
+from models.database import PasswordResetToken, User
 from services.email_service import EmailService
+from services.auth_service import hash_password
 
 router = APIRouter(prefix="/api/password-reset", tags=["password-reset"])
 
@@ -91,15 +92,14 @@ def reset_password(body: ResetPasswordRequest):
         if not reset or reset.expires_at < datetime.utcnow():
             raise HTTPException(status_code=400, detail="Invalid or expired token")
 
-        # Mark token as used
+        # Update the user's password
+        user = db.query(User).filter(User.email == reset.email).first()
+        if not user:
+            raise HTTPException(status_code=400, detail="No account found for this email")
+
+        user.hashed_password = hash_password(body.new_password)
         reset.used = 1
         db.commit()
-
-        # TODO: When you add a User table with hashed passwords,
-        # update the user's password here:
-        # user = db.query(User).filter(User.email == reset.email).first()
-        # user.hashed_password = hash_password(body.new_password)
-        # db.commit()
 
         return {"message": "Password has been reset successfully."}
     except HTTPException:
