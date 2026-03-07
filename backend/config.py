@@ -2,8 +2,9 @@ import os
 from dotenv import load_dotenv
 
 
-# Load environment variables
+# Load environment variables (check backend/.env first, then root .env)
 load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 class AppConfig:
     """Application configuration class"""
