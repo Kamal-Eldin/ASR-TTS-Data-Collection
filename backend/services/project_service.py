@@ -4,7 +4,7 @@ from models.database import Project, Prompt
 from database.connection import SessionLocal
 from database.session import session_lock
 from utils.logging import logger
-from core.config import AppConfig
+from config import AppConfig
 
 
 class ProjectService:

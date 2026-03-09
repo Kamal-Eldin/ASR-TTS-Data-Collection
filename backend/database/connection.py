@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 # Add the backend directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.config import DatabaseConfig
+from config import DatabaseConfig
 
 # Database configuration
 DATABASE_URL = DatabaseConfig.get_database_url()

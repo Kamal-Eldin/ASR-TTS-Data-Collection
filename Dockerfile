@@ -1,5 +1,5 @@
 # Stage 1: Build the React frontend
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 LABEL name="ASR-TTS-Curator"
 LABEL version="0.1"
 LABEL description='''The voice and text data annotation platform. \
@@ -7,6 +7,7 @@ LABEL description='''The voice and text data annotation platform. \
                     speech to text targets for ASR applications.'''
 
 ARG APP_PORT
+ARG VITE_BACKEND_URL
 ENV APP_PORT=${APP_PORT}
 ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 

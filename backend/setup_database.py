@@ -11,7 +11,7 @@ import pymysql
 # Add the backend directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from core.config import DatabaseConfig
+from config import DatabaseConfig
 
 def create_database_if_not_exists():
     """Create the database if it doesn't exist"""

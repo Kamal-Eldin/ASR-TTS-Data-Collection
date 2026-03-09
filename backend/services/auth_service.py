@@ -1,84 +1,83 @@
-from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
-from models.database import User
-from models.schemas import UserCreate, UserLogin
-from core.security import verify_password, get_password_hash, create_access_token
-from services.settings_service import SettingsService
+import os
+import hashlib
+import hmac
+import secrets
+import json
+import base64
+import time
 
 
-class AuthService:
-    @staticmethod
-    def register(db: Session, user_data: UserCreate) -> User:
-        """Register a new user"""
-        # Check if user exists
-        existing_user = db.query(User).filter(
-            (User.email == user_data.email) |
-            (User.username == user_data.username)
-        ).first()
+# JWT config from environment
+JWT_SECRET = os.getenv("JWT_SECRET_KEY", "change-me-in-production-" + secrets.token_hex(16))
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))  # 24 hours default
 
-        if existing_user:
-            if existing_user.email == user_data.email:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Email already registered"
-                )
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Username already taken"
-                )
 
-        # Create new user
-        hashed_password = get_password_hash(user_data.password)
-        db_user = User(
-            email=user_data.email,
-            username=user_data.username,
-            hashed_password=hashed_password
-        )
+def hash_password(password: str) -> str:
+    """Hash a password with a random salt using PBKDF2-SHA256."""
+    salt = secrets.token_hex(16)
+    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000)
+    return f"{salt}:{key.hex()}"
 
-        db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
 
-        # Create default settings for the new user
-        SettingsService.create_default_settings(
-            db_user.id, db)  # type: ignore[arg-type]
+def verify_password(password: str, stored: str) -> bool:
+    """Verify a password against a stored hash."""
+    try:
+        salt, key_hex = stored.split(":")
+        key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000)
+        return hmac.compare_digest(key.hex(), key_hex)
+    except Exception:
+        return False
 
-        return db_user
 
-    @staticmethod
-    def login(db: Session, user_data: UserLogin) -> dict:
-        """Authenticate user and return JWT token"""
-        # Find user by username or email
-        user = db.query(User).filter(
-            (User.username == user_data.username) |
-            (User.email == user_data.username)
-        ).first()
+def _b64url_encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
 
-        if not user or not verify_password(user_data.password, user.hashed_password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
 
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Inactive user"
-            )
+def _b64url_decode(s: str) -> bytes:
+    padding = 4 - len(s) % 4
+    if padding != 4:
+        s += "=" * padding
+    return base64.urlsafe_b64decode(s)
 
-        # Create access token
-        access_token = create_access_token(
-            data={"sub": str(user.id), "username": user.username}
-        )
 
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username
-            }
-        }
+def create_token(user_id: int, email: str) -> str:
+    """Create a simple JWT (HS256) without external dependencies."""
+    header = _b64url_encode(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
+    now = int(time.time())
+    payload_data = {
+        "sub": user_id,
+        "email": email,
+        "iat": now,
+        "exp": now + JWT_EXPIRE_MINUTES * 60,
+    }
+    payload = _b64url_encode(json.dumps(payload_data).encode())
+    signature_input = f"{header}.{payload}".encode()
+    sig = hmac.new(JWT_SECRET.encode(), signature_input, hashlib.sha256).digest()
+    signature = _b64url_encode(sig)
+    return f"{header}.{payload}.{signature}"
+
+
+def verify_token(token: str) -> dict | None:
+    """Verify a JWT and return the payload, or None if invalid."""
+    try:
+        parts = token.split(".")
+        if len(parts) != 3:
+            return None
+
+        header, payload, signature = parts
+        expected_sig = hmac.new(
+            JWT_SECRET.encode(), f"{header}.{payload}".encode(), hashlib.sha256
+        ).digest()
+
+        if not hmac.compare_digest(_b64url_decode(signature), expected_sig):
+            return None
+
+        payload_data = json.loads(_b64url_decode(payload))
+
+        if payload_data.get("exp", 0) < time.time():
+            return None
+
+        return payload_data
+    except Exception:
+        return None

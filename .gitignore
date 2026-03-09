@@ -38,6 +38,7 @@ Output/
 
 # Logs
 *.log
+*log*
 logs
 
 # VSCode
