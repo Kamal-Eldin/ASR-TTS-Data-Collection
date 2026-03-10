@@ -14,6 +14,16 @@ module "vpc" {
   source = "./modules/vpc"
 }
 
+module "ses" {
+  source = "./modules/ses"
+  region = var.region
+  aws_profile = var.aws_profile
+  application_name = var.application_name
+  project_name = var.project_name
+  bucket_name = var.bucket_name
+  apex_zone = var.apex_zone
+}
+
 module "efs" {
   source = "./modules/efs"
   region           = var.region
