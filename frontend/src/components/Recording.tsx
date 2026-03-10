@@ -63,7 +63,7 @@ function Recording() {
     try {
       const res = await fetch(`${BACKEND_URL}/projects/${projectId}`);
       if (!res.ok) {
-        navigate('/');
+        navigate('/projects');
         return;
       }
       const data = await res.json();
@@ -88,7 +88,7 @@ function Recording() {
       });
     } catch (error) {
       console.error('Failed to load project:', error);
-      navigate('/');
+      navigate('/projects');
     }
   };
 
@@ -417,7 +417,7 @@ function Recording() {
             <p className="text-gray-500 mt-1">Voice Recording Session</p>
           </div>
           <button 
-            onClick={() => navigate('/')} 
+            onClick={() => navigate('/projects')} 
             className="bg-gray-100 text-gray-600 rounded-lg px-4 py-2 font-semibold hover:bg-gray-200 transition"
           >
             ← Back to Projects
