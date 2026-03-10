@@ -25,7 +25,7 @@ function AppLayout() {
                 to="/projects"
                 className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition"
               >
-                Voice Dataset Collection
+                Voice Force
               </Link>
 
               <nav className="flex space-x-6 items-center">
