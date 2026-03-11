@@ -46,6 +46,16 @@ const emptyProfile: ProfileForm = {
   micType: "",
 };
 
+const microphoneOptions = [
+  { value: "Professional mic", label: "Professional mic" },
+  { value: "Normal mic", label: "Normal mic" },
+];
+
+const systemOptions = [
+  { value: "opt1", label: "Computer" },
+  { value: "opt2", label: "Mobile" },
+];
+
 function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileForm>(emptyProfile);
@@ -269,19 +279,33 @@ function Profile() {
           </label>
           <label className="block">
             <span className="text-gray-700 font-medium">Operating System</span>
-            <input
+            <select
               value={profile.system}
               onChange={(event) => handleChange("system", event.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 mt-1 bg-gray-50"
-            />
+            >
+              <option value="">System</option>
+              {systemOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="block md:col-span-2">
             <span className="text-gray-700 font-medium">Microphone Type</span>
-            <input
+            <select
               value={profile.micType}
               onChange={(event) => handleChange("micType", event.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 mt-1 bg-gray-50"
-            />
+            >
+              <option value="">Select microphone type</option>
+              {microphoneOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
 
