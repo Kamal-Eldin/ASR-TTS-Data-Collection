@@ -3,15 +3,23 @@ import { Routes, Route, Navigate, Link, Outlet, useNavigate } from "react-router
 import Projects from "./components/Projects";
 import Recording from "./components/Recording";
 import Settings from "./components/Settings";
+import Profile from "./components/Profile";
 import SignIn from "./Auth/SignIn";
 import ForgotPassword from "./Auth/ForgotPassword";
 import ResetPassword from "./Auth/ResetPassword";
+import { clearStoredAuth, getStoredUser, isAuthenticated } from "./utils/auth";
+
+function RequireAuth() {
+  return isAuthenticated() ? <Outlet /> : <Navigate to="/signin" replace />;
+}
 
 function AppLayout() {
   const navigate = useNavigate();
+  const storedUser = getStoredUser();
+  const profileInitial = (storedUser?.firstName?.[0] || storedUser?.email?.[0] || "U").toUpperCase();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    clearStoredAuth();
     navigate("/signin", { replace: true });
   };
 
@@ -28,7 +36,16 @@ function AppLayout() {
                 Voice Force
               </Link>
 
-              <nav className="flex space-x-6 items-center">
+              <nav className="flex items-center gap-6">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-3 text-gray-600 hover:text-gray-900 font-medium transition"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
+                    {profileInitial}
+                  </span>
+                  <span>Profile</span>
+                </Link>
                 <Link
                   to="/projects"
                   className="text-gray-600 hover:text-gray-900 font-medium transition"
@@ -41,7 +58,6 @@ function AppLayout() {
                 >
                   Settings
                 </Link>
-
                 <button
                   onClick={handleLogout}
                   className="text-red-600 rounded-lg px-4 py-2 font-semibold hover:bg-red-200 transition"
@@ -64,30 +80,31 @@ function AppLayout() {
 export default function App() {
   return (
     <Routes>
-      {/* open signin first */}
-      <Route path="/" element={<Navigate to="/signin" replace />} />
+      <Route
+        path="/"
+        element={<Navigate to={isAuthenticated() ? "/projects" : "/signin"} replace />}
+      />
 
-      {/* auth pages */}
       <Route
         path="/signin"
-        element={
-          localStorage.getItem("token")
-            ? <Navigate to="/projects" replace />
-            : <SignIn />
-        }
+        element={isAuthenticated() ? <Navigate to="/projects" replace /> : <SignIn />}
       />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* main app pages */}
-      <Route element={<AppLayout />}>
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/recording/:projectId" element={<Recording />} />
-        <Route path="/settings" element={<Settings />} />
+      <Route element={<RequireAuth />}>
+        <Route element={<AppLayout />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/recording/:projectId" element={<Recording />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
       </Route>
 
-      {/* fallback */}
-      <Route path="*" element={<Navigate to="/signin" replace />} />
+      <Route
+        path="*"
+        element={<Navigate to={isAuthenticated() ? "/projects" : "/signin"} replace />}
+      />
     </Routes>
   );
 }

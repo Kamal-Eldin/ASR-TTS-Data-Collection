@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./Auth.css";
 import StepIndicator from "../components/StepIndicator";
 import { useNavigate } from "react-router-dom";
+import { setStoredAuth } from "../utils/auth";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -387,7 +388,7 @@ function App() {
                         const data = await res.json();
                         if (!res.ok) throw new Error(data.detail || "Login failed");
 
-                        localStorage.setItem("token", data.token);
+                        setStoredAuth(data.token, data.user);
                         navigate("/projects", { replace: true });
                       } catch (err: unknown) {
                         setAuthError(err instanceof Error ? err.message : "Login failed");
@@ -1190,7 +1191,7 @@ function App() {
                                     const data = await res.json();
                                     if (!res.ok) throw new Error(data.detail || "Signup failed");
 
-                                    localStorage.setItem("token", data.token);
+                                    setStoredAuth(data.token, data.user);
                                     setSignUpCompleted(true);
                                     navigate("/projects", { replace: true });
                                   } catch (err: unknown) {
