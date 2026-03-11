@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 
 Base = declarative_base()
@@ -24,29 +23,41 @@ class User(Base):
     system = Column(String(50))
     mic_type = Column(String(50))
     created_at = Column(DateTime, default=datetime.utcnow)
+    projects = relationship("Project", back_populates="user")
+    settings = relationship("Setting", back_populates="user")
 
 class Setting(Base):
     __tablename__ = 'settings'
+    __table_args__ = (
+        UniqueConstraint('user_id', 'key', name='uq_settings_user_key'),
+    )
     id = Column(Integer, primary_key=True, index=True)
-    key = Column(String(255), unique=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), index=True, nullable=True)
+    key = Column(String(255), index=True, nullable=False)
     value = Column(Text)
+    user = relationship("User", back_populates="settings")
 
 class Project(Base):
     __tablename__ = 'projects'
+    __table_args__ = (
+        UniqueConstraint('user_id', 'name', name='uq_projects_user_name'),
+    )
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), unique=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), index=True, nullable=True)
+    name = Column(String(255), index=True, nullable=False)
     is_rtl = Column(Integer, default=0)  # 0 for LTR, 1 for RTL
     created_at = Column(DateTime, default=datetime.utcnow)
+    user = relationship("User", back_populates="projects")
+    prompts = relationship("Prompt", back_populates="project")
 
 class Prompt(Base):
     __tablename__ = 'prompts'
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, index=True)
+    project_id = Column(Integer, ForeignKey('projects.id'), index=True)
     text = Column(Text, nullable=False)
     order_index = Column(Integer, nullable=False)  # To maintain order of prompts
     created_at = Column(DateTime, default=datetime.utcnow)
-    
-    # Relationship to Recordings
+    project = relationship("Project", back_populates="prompts")
     recordings = relationship("Recording", back_populates="prompt")
 
 class Recording(Base):
