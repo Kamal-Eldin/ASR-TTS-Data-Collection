@@ -6,6 +6,7 @@ import { setStoredAuth } from "../utils/auth";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+
 type LanguagePair = { language: string; level: string };
 type RestCountryLang = { languages?: Record<string, string> };
 type SignUpErrors = Partial<Record<string, string>>;
