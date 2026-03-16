@@ -342,13 +342,13 @@ function App() {
           <div className="tab-list">
             <button
               className={`tab-button ${activeTab === 'signin' ? 'active' : ''}`}
-              onClick={() => setActiveTab('signin')}
+              onClick={() => { setActiveTab('signin'); setAuthError(""); }}
             >
               Sign In
             </button>
             <button
               className={`tab-button ${activeTab === 'signup' ? 'active' : ''}`}
-              onClick={() => setActiveTab('signup')}
+              onClick={() => { setActiveTab('signup'); setAuthError(""); }}
             >
               Sign Up
             </button>
