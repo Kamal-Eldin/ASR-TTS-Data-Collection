@@ -44,3 +44,7 @@ output "backend_route" {
 output "app_alias" {
   value = module.route.app_alias
 }
+
+output "ses_domain" {
+  value = module.ses.ses_domain
+}
