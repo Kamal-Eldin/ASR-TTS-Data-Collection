@@ -957,8 +957,8 @@ function App() {
                                     }
                                   >
                                     <option value="">System</option>
-                                    <option value="opt1">Computer</option>
-                                    <option value="opt2">Mobile</option>
+                                    <option value="Computer">Computer</option>
+                                    <option value="Mobile">Mobile</option>
                                   </select>
 
                                   <svg className="select-arrow" width="16" height="16" viewBox="0 0 16 16">
@@ -982,8 +982,8 @@ function App() {
                                     }
                                   >
                                     <option value="">Mic type</option>
-                                    <option value="optA">Professional mic</option>
-                                    <option value="optB">Normal mic</option>
+                                    <option value="Professional mic">Professional mic</option>
+                                    <option value="Normal mic">Normal mic</option>
                                   </select>
 
                                   <svg className="select-arrow" width="16" height="16" viewBox="0 0 16 16">

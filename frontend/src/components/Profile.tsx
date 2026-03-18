@@ -52,8 +52,8 @@ const microphoneOptions = [
 ];
 
 const systemOptions = [
-  { value: "opt1", label: "Computer" },
-  { value: "opt2", label: "Mobile" },
+  { value: "Computer", label: "Computer" },
+  { value: "Mobile", label: "Mobile" },
 ];
 
 function Profile() {
