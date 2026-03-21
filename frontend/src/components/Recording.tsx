@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { encodeWAV, mergeBuffers, createAudioContext } from '../utils/wavEncoder';
+import { apiFetch, getRecordingUrl } from '../utils/auth';
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -61,9 +62,9 @@ function Recording() {
 
   const loadProject = async (projectId: number) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/projects/${projectId}`);
+      const res = await apiFetch(`${BACKEND_URL}/projects/${projectId}`);
       if (!res.ok) {
-        navigate('/');
+        navigate('/projects');
         return;
       }
       const data = await res.json();
@@ -88,13 +89,13 @@ function Recording() {
       });
     } catch (error) {
       console.error('Failed to load project:', error);
-      navigate('/');
+      navigate('/projects');
     }
   };
 
   const loadExistingRecordings = async (projectId: number) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/projects/${projectId}/recordings`);
+      const res = await apiFetch(`${BACKEND_URL}/projects/${projectId}/recordings`);
       if (res.ok) {
         const data = await res.json();
         const recordingsMap: {[text: string]: {filename: string, recorded_at: string}} = {};
@@ -135,7 +136,7 @@ function Recording() {
     if (!project) return;
     
     try {
-      const res = await fetch(`${BACKEND_URL}/projects/${project.id}`);
+      const res = await apiFetch(`${BACKEND_URL}/projects/${project.id}`);
       if (res.ok) {
         const data = await res.json();
         setProject(data);
@@ -260,7 +261,7 @@ function Recording() {
       formData.append('audio', new File([wavBlob], 'recording.wav', { type: 'audio/wav' }));
       formData.append('project_id', project!.id.toString());
       
-      const response = await fetch(`${BACKEND_URL}/upload_audio/`, {
+      const response = await apiFetch(`${BACKEND_URL}/upload_audio/`, {
         method: 'POST',
         body: formData,
       });
@@ -304,7 +305,7 @@ function Recording() {
     formData.append('text', prompts[currentIdx]);
     formData.append('project_id', project.id.toString());
     
-    await fetch(`${BACKEND_URL}/delete_audio/`, {
+    await apiFetch(`${BACKEND_URL}/delete_audio/`, {
       method: 'POST',
       body: formData,
     });
@@ -330,7 +331,7 @@ function Recording() {
     } else if (existingRecordings[prompts[currentIdx]]) {
       // Create audio URL from existing recording
       // const storagePath = 'recordings'; // This should come from settings
-      const audioUrl = `${BACKEND_URL}/recordings/${existingRecordings[prompts[currentIdx]].filename}`;
+      const audioUrl = getRecordingUrl(BACKEND_URL, existingRecordings[prompts[currentIdx]].filename);
       setAudioUrl(audioUrl);
     } else {
       setAudioUrl(null);
@@ -356,7 +357,7 @@ function Recording() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
         
-        const res = await fetch(`${BACKEND_URL}/export_hf/`, {
+        const res = await apiFetch(`${BACKEND_URL}/export_hf/`, {
           method: 'POST',
           body: formData,
           signal: controller.signal,
@@ -417,7 +418,7 @@ function Recording() {
             <p className="text-gray-500 mt-1">Voice Recording Session</p>
           </div>
           <button 
-            onClick={() => navigate('/')} 
+            onClick={() => navigate('/projects')} 
             className="bg-gray-100 text-gray-600 rounded-lg px-4 py-2 font-semibold hover:bg-gray-200 transition"
           >
             ← Back to Projects
@@ -558,12 +559,12 @@ function Recording() {
                               <audio 
                                 controls 
                                 className="h-8 rounded bg-gray-100"
-                                src={`${BACKEND_URL}/recordings/${recording.filename}`}
+                                src={getRecordingUrl(BACKEND_URL, recording.filename)}
                               />
                               <button 
                                 onClick={() => {
                                   setCurrentIdx(index);
-                                  setAudioUrl(`${BACKEND_URL}/recordings/${recording.filename}`);
+                                  setAudioUrl(getRecordingUrl(BACKEND_URL, recording.filename));
                                 }}
                                 className="bg-gray-100 text-gray-700 rounded px-3 py-1 text-sm font-medium hover:bg-gray-200 transition"
                               >

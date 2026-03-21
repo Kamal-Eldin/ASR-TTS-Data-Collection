@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import "./Auth.css";
 import StepIndicator from "../components/StepIndicator";
 import { useNavigate } from "react-router-dom";
+import { setStoredAuth } from "../utils/auth";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 
 type LanguagePair = { language: string; level: string };
 type RestCountryLang = { languages?: Record<string, string> };
@@ -340,13 +342,13 @@ function App() {
           <div className="tab-list">
             <button
               className={`tab-button ${activeTab === 'signin' ? 'active' : ''}`}
-              onClick={() => setActiveTab('signin')}
+              onClick={() => { setActiveTab('signin'); setAuthError(""); }}
             >
               Sign In
             </button>
             <button
               className={`tab-button ${activeTab === 'signup' ? 'active' : ''}`}
-              onClick={() => setActiveTab('signup')}
+              onClick={() => { setActiveTab('signup'); setAuthError(""); }}
             >
               Sign Up
             </button>
@@ -387,7 +389,7 @@ function App() {
                         const data = await res.json();
                         if (!res.ok) throw new Error(data.detail || "Login failed");
 
-                        localStorage.setItem("token", data.token);
+                        setStoredAuth(data.token, data.user);
                         navigate("/projects", { replace: true });
                       } catch (err: unknown) {
                         setAuthError(err instanceof Error ? err.message : "Login failed");
@@ -955,8 +957,8 @@ function App() {
                                     }
                                   >
                                     <option value="">System</option>
-                                    <option value="opt1">Computer</option>
-                                    <option value="opt2">Mobile</option>
+                                    <option value="Computer">Computer</option>
+                                    <option value="Mobile">Mobile</option>
                                   </select>
 
                                   <svg className="select-arrow" width="16" height="16" viewBox="0 0 16 16">
@@ -980,8 +982,8 @@ function App() {
                                     }
                                   >
                                     <option value="">Mic type</option>
-                                    <option value="optA">Professional mic</option>
-                                    <option value="optB">Normal mic</option>
+                                    <option value="Professional mic">Professional mic</option>
+                                    <option value="Normal mic">Normal mic</option>
                                   </select>
 
                                   <svg className="select-arrow" width="16" height="16" viewBox="0 0 16 16">
@@ -1190,7 +1192,7 @@ function App() {
                                     const data = await res.json();
                                     if (!res.ok) throw new Error(data.detail || "Signup failed");
 
-                                    localStorage.setItem("token", data.token);
+                                    setStoredAuth(data.token, data.user);
                                     setSignUpCompleted(true);
                                     navigate("/projects", { replace: true });
                                   } catch (err: unknown) {

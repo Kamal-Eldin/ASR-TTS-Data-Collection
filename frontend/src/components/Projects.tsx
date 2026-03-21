@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
+import { apiFetch } from '../utils/auth';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -32,7 +32,7 @@ function Projects() {
   }, []);
 
   const fetchProjects = async () => {
-    const res = await fetch(`${BACKEND_URL}/projects/`);
+    const res = await apiFetch(`${BACKEND_URL}/projects/`);
     const data = await res.json();
     console.log('Projects data received:', data.projects);
     setProjects(data.projects);
@@ -69,7 +69,7 @@ function Projects() {
         formData.append('project_name', projectName);
         formData.append('is_rtl', isRtl.toString());
         
-        res = await fetch(`${BACKEND_URL}/upload_csv/`, {
+        res = await apiFetch(`${BACKEND_URL}/upload_csv/`, {
           method: 'POST',
           body: formData,
         });
@@ -79,7 +79,7 @@ function Projects() {
         formData.append('prompts_text', multiLineText);
         formData.append('is_rtl', isRtl.toString());
         
-        res = await fetch(`${BACKEND_URL}/create_project/`, {
+        res = await apiFetch(`${BACKEND_URL}/create_project/`, {
           method: 'POST',
           body: formData,
         });
@@ -126,7 +126,7 @@ function Projects() {
     if (!projectToDelete) return;
     
     try {
-      const res = await fetch(`${BACKEND_URL}/projects/${projectToDelete.id}`, {
+      const res = await apiFetch(`${BACKEND_URL}/projects/${projectToDelete.id}`, {
         method: 'DELETE',
       });
       
