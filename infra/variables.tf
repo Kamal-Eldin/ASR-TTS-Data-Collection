@@ -62,3 +62,15 @@ variable "apex_zone" {
     default = "voiceforce.click"
 
 }
+
+variable "ses_sender_email" {
+    type        = string
+    default     = ""
+    description = "Verified SES sender address used for password-reset emails. Leave empty to disable email sending."
+}
+
+variable "frontend_url" {
+    type        = string
+    default     = ""
+    description = "Override for the URL embedded in password-reset emails. Falls back to the CloudFront domain if empty."
+}

@@ -22,8 +22,8 @@ class AppConfig:
     S3_EXPORT_TIMEOUT = int(os.getenv('S3_EXPORT_TIMEOUT', 300))
     
     # AWS Configuration
-    AWS_ACCESS_KEY_ID_FILE = os.getenv('AWS_ACCESS_KEY_ID', '')
-    AWS_SECRET_ACCESS_KEY_FILE = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+    AWS_ACCESS_KEY_ID_FILE = os.getenv('AWS_ACCESS_KEY_ID_FILE', '')
+    AWS_SECRET_ACCESS_KEY_FILE = os.getenv('AWS_SECRET_ACCESS_KEY_FILE', '')
     AWS_DEFAULT_REGION = os.getenv('AWS_DEFAULT_REGION', 'us-east-1')
     
     # SES Email Configuration
@@ -42,11 +42,11 @@ class AppConfig:
         try:
             assert os.path.exists(secret_path), f"No secret file found for {env_key} at path: {secret_path}"
             with open(secret_path, 'r') as file:
-                return file.read() 
+                return file.read().strip()
         except:
             print(f"Falling back to environment variable for key {env_key}")
             try:
-                variable = os.getenv(env_key, "")
+                variable = os.getenv(env_key, "").strip()
                 assert variable, ValueError
                 return variable
             except:

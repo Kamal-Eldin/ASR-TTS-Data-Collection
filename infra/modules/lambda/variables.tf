@@ -82,5 +82,17 @@ variable "efs_access_arn" {
 
 variable "backend_route" {
     type = string
-    default = "" 
+    default = ""
+}
+
+variable "ses_sender_email" {
+    type        = string
+    default     = ""
+    description = "Verified SES sender address used for password-reset emails. Leave empty to disable email sending."
+}
+
+variable "frontend_url" {
+    type        = string
+    default     = ""
+    description = "Base URL the password-reset email links back to. Falls back to the CloudFront domain if empty."
 }

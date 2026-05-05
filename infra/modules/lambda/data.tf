@@ -45,6 +45,14 @@ data "aws_iam_policy" "lambda-efs-access" {
     name= "AmazonElasticFileSystemClientReadWriteAccess"
 }
 
+data "aws_iam_policy_document" "lambda-ses-send-policy-doc" {
+    statement {
+        effect    = "Allow"
+        actions   = ["ses:SendEmail", "ses:SendRawEmail"]
+        resources = ["*"]
+    }
+}
+
 # data "aws_iam_policy_document" "net-interface-policy-doc" {
 #     statement {
 #         effect = "Allow"

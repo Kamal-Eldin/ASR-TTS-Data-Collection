@@ -50,7 +50,9 @@ module "lambda" {
   lambda-secgrp_id = module.vpc.lambda_secgrp_id
   subnets_ids      = module.vpc.subnets_ids
   efs_access_arn   = module.efs.efs_access_arn
-  
+  ses_sender_email = var.ses_sender_email
+  frontend_url     = var.frontend_url
+
   depends_on       = [ module.vpc, module.ssm, module.aurora, module.efs]
 }
 
