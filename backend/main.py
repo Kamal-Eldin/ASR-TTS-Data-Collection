@@ -6,8 +6,23 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+
+class SPAStaticFiles(StaticFiles):
+    """StaticFiles that falls back to index.html on 404 so client-side routes load directly.
+
+    /api/* paths bypass the fallback so missing API endpoints still return real 404s.
+    """
+
+    async def get_response(self, path, scope):
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            if exc.status_code == 404 and not path.lstrip("/").startswith("api/"):
+                return await super().get_response("index.html", scope)
+            raise
 
 from config import AppConfig
 from models.database import Base
@@ -52,7 +67,7 @@ app.include_router(profile_router, prefix= AppConfig.ROUTER_PREFIX )
 def health_check():
     return {"status": "healthy"}
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/", SPAStaticFiles(directory="static", html=True), name="static")
 
 
 

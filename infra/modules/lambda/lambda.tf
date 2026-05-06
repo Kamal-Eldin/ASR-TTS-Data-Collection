@@ -34,6 +34,17 @@ resource "aws_iam_role_policy_attachment" "lambda-efs-policy-attach" {
     role = aws_iam_role.lambda-execution-role.name
 }
 
+resource "aws_iam_policy" "lambda-ses-send-policy" {
+    name        = "${var.application_name}-lambda-ses-send"
+    description = "Allow the speech-collector lambda to send password-reset emails via SES."
+    policy      = data.aws_iam_policy_document.lambda-ses-send-policy-doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda-ses-policy-attach" {
+    policy_arn = aws_iam_policy.lambda-ses-send-policy.arn
+    role       = aws_iam_role.lambda-execution-role.name
+}
+
 resource "aws_lambda_function_url" "speech-collector-lambda-url" {
     region = var.region
     function_name = aws_lambda_function.speech-collector-lambda.function_name
@@ -82,6 +93,10 @@ resource "aws_lambda_function" "speech-collector-lambda" {
             
             "HUGGINGFACE_TOKEN"= data.aws_ssm_parameter.collector-hf-token.value
             "MYSQL_PASSWORD"   = data.aws_ssm_parameter.collector-db-root-pass.value
+
+            "AWS_DEFAULT_REGION" = var.region
+            "SES_SENDER_EMAIL"   = var.ses_sender_email
+            "FRONTEND_URL"       = var.frontend_url != "" ? var.frontend_url : "https://${var.cf_dns}"
 
             "AWS_LWA_READINESS_CHECK_PATH" = "/health"
             "AWS_LWA_PORT" = tostring(var.backend_port)

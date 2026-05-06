@@ -26,9 +26,18 @@ class ValidateTokenRequest(BaseModel):
 
 @router.post("/forgot")
 def forgot_password(body: ForgotPasswordRequest):
-    """Generate a reset token and email it to the user."""
+    """Generate a reset token and email it to the user, only if the email matches an account."""
+    generic_message = {
+        "message": "If we find this email in our data, you should receive a reset password email shortly. Please check your spam folder."
+    }
+
     db = get_db()
     try:
+        user = db.query(User).filter(User.email == body.email).first()
+        if not user:
+            # Same response regardless of match, to avoid leaking which emails are registered
+            return generic_message
+
         # Invalidate any existing unused tokens for this email
         db.query(PasswordResetToken).filter(
             PasswordResetToken.email == body.email,
@@ -45,11 +54,9 @@ def forgot_password(body: ForgotPasswordRequest):
         db.add(reset)
         db.commit()
 
-        # Send the email
         EmailService.send_password_reset_email(body.email, token)
 
-        # Always return success to avoid leaking whether the email exists
-        return {"message": "If that email is registered, a reset link has been sent."}
+        return generic_message
     except Exception as e:
         db.rollback()
         print(f"[PasswordReset] Error: {e}")
